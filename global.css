@@ -1,0 +1,114 @@
+/* * * global * * */
+* {
+    color: #ddd;
+    font-size: 22px;
+    box-sizing: border-box;
+}
+html, body {
+    height: 100%;
+}
+body {
+    background-color: #111;
+    font-family: Arial, Helvetica, sans-serif;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    grid-template-rows: min-content 1fr;
+    grid-template-areas: 
+        "header header"
+        "nav main";
+}
+section {
+    background-color: #ffffff11;
+    border-radius: 1vw;
+    padding: 1.5vw;
+}
+section + section {
+    margin-top: 1.5vw;
+}
+h2 {
+    font-size: 36px;
+    margin-bottom: 1vw;
+}
+h3 {
+    font-size: 28px;
+}
+p {
+    line-height: 120%;
+}
+a {
+    text-decoration: none;
+}
+a:hover {
+    cursor: pointer;
+}
+::-webkit-scrollbar {
+    width: 0.6vw;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #ffffff11;
+    border-radius: 0.6vw;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #ffffff22;
+}
+
+/* * * class * * */
+article.linklist > a {
+    display: block;
+    width: fit-content;
+    line-height: 120%;
+    transition: text-shadow 0.2s;
+}
+article.linklist > a:hover {
+    text-shadow: #fff 0 0 0.1em;
+}
+
+/* * * header * * */
+header {
+    grid-area: header;
+    width: 100%;
+    background-color: #ffffff11;
+}
+header > a {
+    display: inline-block;
+    user-select: none;
+    font-size: 1.5vw;
+    line-height: 3.5vw;
+    vertical-align: middle;
+    padding: 0 0.5em;
+    transition: background-color 0.2s;
+}
+header > a:first-child {
+    font-size: 2vw;
+    transition: none;
+}
+header > a:not(:first-child):hover {
+    background-color: #ffffff11;
+}
+
+/* * * nav * * */
+nav {
+    grid-area: nav;
+    background-color: #ffffff11;
+}
+nav > a {
+    user-select: none;
+    display: block;
+    font-size: 1.3vw;
+    padding: 0.5em 0.8em;
+    transition: background-color 0.2s;
+}
+nav > a:hover {
+    background-color: #ffffff11;
+}
+
+/* * * main * * */
+main {
+    grid-area: main;
+    padding: 1.5vw;
+    overflow: auto;
+    overflow: overlay;
+}
