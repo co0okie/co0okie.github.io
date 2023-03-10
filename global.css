@@ -1,33 +1,60 @@
 /* * * global * * */
 * {
     color: #ddd;
-    font-size: 22px;
+    font-size: 18px;
     box-sizing: border-box;
 }
 html, body {
     height: 100%;
 }
 body {
-    background-color: #111;
+    background-color: #222;
     font-family: Arial, Helvetica, sans-serif;
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    grid-template-rows: min-content 1fr;
-    grid-template-areas: 
-        "header header"
-        "nav main";
+    display: flex;
 }
-section {
+header {
+    background-color: #ffffff11;
+}
+header .button {
+    font-size: 20px;
+    padding: 0.4em;
+    user-select: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+header > .button {
+    font-size: 28px;
+}
+header .container {
+    background-color: #ffffff11;
+}
+main {
+    flex: 1;
+    padding: 30px;
+    overflow: auto;
+    overflow: overlay;
+}
+body > div {
+    width: 0.1vw;
+    height: 100%;
+    position: fixed;
+}
+
+/* section {
     background-color: #ffffff11;
     border-radius: 1vw;
     padding: 1.5vw;
 }
 section + section {
     margin-top: 1.5vw;
+} */
+article {
+    margin-bottom: 50px;
 }
 h2 {
-    font-size: 36px;
-    margin-bottom: 1vw;
+    font-size: 32px;
+    padding: 0.5em 0;
+    /* margin-bottom: 0.5em; */
 }
 h3 {
     font-size: 28px;
@@ -60,55 +87,8 @@ article.linklist > a {
     display: block;
     width: fit-content;
     line-height: 120%;
-    transition: text-shadow 0.2s;
+    /* transition: text-shadow 0.2s; */
 }
 article.linklist > a:hover {
-    text-shadow: #fff 0 0 0.1em;
-}
-
-/* * * header * * */
-header {
-    grid-area: header;
-    width: 100%;
-    background-color: #ffffff11;
-}
-header > a {
-    display: inline-block;
-    user-select: none;
-    font-size: 1.5vw;
-    line-height: 3.5vw;
-    vertical-align: middle;
-    padding: 0 0.5em;
-    transition: background-color 0.2s;
-}
-header > a:first-child {
-    font-size: 2vw;
-    transition: none;
-}
-header > a:not(:first-child):hover {
-    background-color: #ffffff11;
-}
-
-/* * * nav * * */
-nav {
-    grid-area: nav;
-    background-color: #ffffff11;
-}
-nav > a {
-    user-select: none;
-    display: block;
-    font-size: 1.3vw;
-    padding: 0.5em 0.8em;
-    transition: background-color 0.2s;
-}
-nav > a:hover {
-    background-color: #ffffff11;
-}
-
-/* * * main * * */
-main {
-    grid-area: main;
-    padding: 1.5vw;
-    overflow: auto;
-    overflow: overlay;
+    text-shadow: #ddd 0 0 0.1em;
 }

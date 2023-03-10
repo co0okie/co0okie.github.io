@@ -1,0 +1,17 @@
+@import url(https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css);
+
+main caption {
+    font-size: 18pt;
+    margin: 10px;
+}
+main table {
+    border-collapse: collapse;
+    font-family: "Fira Code", Consolas, monospace;
+    font-feature-settings: "cv01", "cv02", "ss02", "ss03", "ss05", "ss07", "ss09";
+}
+main td {
+    font-size: 12pt;
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
