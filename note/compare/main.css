@@ -1,9 +1,5 @@
 @import url(https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css);
 
-main caption {
-    font-size: 18pt;
-    margin: 10px;
-}
 main table {
     border-collapse: collapse;
     font-family: "Fira Code", Consolas, monospace;
@@ -14,4 +10,15 @@ main td {
     padding: 5px;
     text-align: center;
     border: 1px solid #ddd;
+}
+main thead {
+  position: sticky;
+  top: calc(var(--main-padding) * -1);
+  z-index: 1;
+  background-color: #333;
+}
+main th:first-child {
+  position: sticky;
+  left: calc(var(--main-padding) * -1);
+  background-color: #333;
 }

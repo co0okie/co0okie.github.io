@@ -1,4 +1,7 @@
 /* * * global * * */
+:root {
+    --main-padding: 30px;
+}
 * {
     color: #ddd;
     font-size: 18px;
@@ -21,7 +24,6 @@ header .button {
     user-select: none;
     white-space: nowrap;
     cursor: pointer;
-    /* box-shadow: inset 0.2em 0 #fff; */
 }
 header > .button {
     font-size: 28px;
@@ -31,7 +33,7 @@ header .container {
 }
 main {
     flex: 1;
-    padding: 30px;
+    padding: var(--main-padding);
     overflow: auto;
     overflow: overlay;
 }
@@ -61,7 +63,10 @@ a:hover {
     cursor: pointer;
 }
 ::-webkit-scrollbar {
-    width: 0.6vw;
+    width: 10px;
+}
+::-webkit-scrollbar-corner {
+    background-color: transparent;
 }
 ::-webkit-scrollbar-track {
     background: transparent;
