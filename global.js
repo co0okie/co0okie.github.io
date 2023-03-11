@@ -1,7 +1,7 @@
 'use strict'
 
 class Directory {
-    constructor({name, text = name, children, main}, parent) {
+    constructor({name, text = name, children, main, clickToExpand = true}, parent) {
         this.name = name;
         this.parent = parent;
         this.main = main;
@@ -17,9 +17,9 @@ class Directory {
             
             this.container = document.createElement('div');
             this.container.classList.add('container');
-            this.container.style.display = this.level ? 'none' : 'block';
+            this.container.style.display = clickToExpand ? 'none' : 'block';
             
-            this.level && this.button.addEventListener('click', e => {
+            clickToExpand && this.button.addEventListener('click', e => {
                 const style = this.container.style;
                 if (style.display === 'block') this.collapse();
                 else style.display = 'block';
@@ -77,52 +77,63 @@ const ROOT = new Directory({
             text: 'FFmpeg',
             main: ['html']
         }]
-    }]
+    }],
+    clickToExpand: false
 });
 
-let PWD;
-function cd(dir) {
-    if (PWD === dir) return;
+const cd = (() => {
+    let pwd;
+    return (dir) => {
+        if (pwd === dir) return;
     
-    if (PWD?.css) PWD.css.remove();
-    
-    if (dir.main?.includes('html')) {
-        fetch(dir.path + 'main.html')
-        .then(r => r.text())
-        .then(t => MAIN.innerHTML = t);
-    }
-    
-    if (dir.main?.includes('css')) {
-        if (dir.css) {
-            document.head.appendChild(dir.css);
-        } else {
-            fetch(dir.path + 'main.css')
+        if (pwd?.css) pwd.css.remove();
+        if (pwd) pwd.button.style.boxShadow = '';
+        
+        if (dir.main?.includes('html')) {
+            fetch(dir.path + 'main.html')
             .then(r => r.text())
-            .then(t => {
-                dir.css = document.createElement('style');
-                dir.css.innerHTML = t;
-                document.head.appendChild(dir.css);
-            });
+            .then(t => MAIN.innerHTML = t);
         }
+        
+        if (dir.main?.includes('css')) {
+            if (dir.css) {
+                document.head.appendChild(dir.css);
+            } else {
+                fetch(dir.path + 'main.css')
+                .then(r => r.text())
+                .then(t => {
+                    dir.css = document.createElement('style');
+                    dir.css.innerHTML = t;
+                    document.head.appendChild(dir.css);
+                });
+            }
+        }
+        
+        dir.button.style.boxShadow = 'inset 0.2em 0 #fff';
+        
+        history.pushState(undefined, undefined, `/?dir=${dir.path}`);
+        pwd = dir;
     }
-    
-    history.pushState(undefined, undefined, `/?dir=${dir.path}`);
-    PWD = dir;
-}
+})();
 
-const SWITCH = document.querySelector('body > div')
+const SWITCH = document.querySelector('body > div'); // toggle header show/hide
 const HEADER = document.querySelector('body > header');
 const MAIN = document.querySelector('body > main');
-
 HEADER.append(ROOT.button, ROOT.container);
 HEADER.style.display = 'block';
 SWITCH.addEventListener('click', e => {
-    const style = HEADER.style;
-    style.display = (style.display === 'block') ? 'none' : 'block';
+    HEADER.style.display = (HEADER.style.display === 'block') ? 'none' : 'block';
 });
 
-cd(
-    new URLSearchParams(window.location.search)
-    .get('dir').split('/').filter(s => s)
-    .reduce((p, c) => p.children?.get(c) || p, ROOT)
-);
+window.addEventListener('load', e => {
+    let dir = new URLSearchParams(window.location.search)
+        .get('dir')?.split('/').filter(s => s)
+        .reduce((p, c) => p.children?.get(c) || p, ROOT)
+        || ROOT;
+    (function expand(d) {
+        if (!d.parent) return;
+        d.parent.container.style.display = 'block';
+        expand(d.parent);
+    })(dir);
+    cd(dir);
+});
