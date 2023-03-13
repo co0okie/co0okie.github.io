@@ -57,6 +57,10 @@ const ROOT = new Directory({
         text: '筆記',
         main: ['html'],
         children: [{
+            name: 'tcivs',
+            text: '中工',
+            main: ['html']
+        }, {
             name: 'compare',
             text: '程式語言比較',
             main: ['html', 'css']
@@ -71,7 +75,7 @@ const ROOT = new Directory({
         children: [{
             name: 'acim',
             text: '旋轉磁場',
-            main: ['html']
+            main: ['css', 'javascript']
         }, {
             name: 'ffmpeg',
             text: 'FFmpeg',
@@ -83,46 +87,52 @@ const ROOT = new Directory({
 
 const cd = (() => {
     let pwd;
-    return (dir) => {
+    return async (dir) => {
         if (pwd === dir) return;
-    
+        
+        document.dispatchEvent(new CustomEvent('cd'));
+        
+        MAIN.innerHTML = '';
         if (pwd?.css) pwd.css.remove();
-        if (pwd) pwd.button.style.boxShadow = '';
+        if (pwd?.js) pwd.js.remove();
+        if (pwd && pwd !== ROOT) pwd.button.style.boxShadow = '';
+        
         
         if (dir.main?.includes('html')) {
-            fetch(dir.path + 'main.html')
+            await fetch(dir.path + 'main.html')
             .then(r => r.text())
             .then(t => MAIN.innerHTML = t);
         }
         
         if (dir.main?.includes('css')) {
-            if (dir.css) {
-                document.head.appendChild(dir.css);
-            } else {
-                fetch(dir.path + 'main.css')
-                .then(r => r.text())
-                .then(t => {
-                    dir.css = document.createElement('style');
-                    dir.css.innerHTML = t;
-                    document.head.appendChild(dir.css);
-                });
-            }
+            dir.css = document.createElement('link');
+            dir.css.rel = "stylesheet";
+            dir.css.href = dir.path + 'main.css';
+            document.head.appendChild(dir.css);
         }
         
-        dir.button.style.boxShadow = 'inset 0.2em 0 #fff';
+        if (dir.main?.includes('javascript')) {
+            dir.js = document.createElement('script');
+            dir.js.src = dir.path + 'main.js';
+            document.head.appendChild(dir.js);
+        }
+        
+        if (dir !== ROOT) dir.button.style.boxShadow = 'inset 0.2em 0 #fff';
         
         history.pushState(undefined, undefined, `/?dir=${dir.path}`);
         pwd = dir;
     }
 })();
 
-const SWITCH = document.querySelector('body > div'); // toggle header show/hide
-const HEADER = document.querySelector('body > header');
-const MAIN = document.querySelector('body > main');
+const HEADER = document.createElement('header');
+const MAIN = document.createElement('main');
+document.body.append(HEADER, MAIN);
 HEADER.append(ROOT.button, ROOT.container);
 HEADER.style.display = 'block';
-SWITCH.addEventListener('click', e => {
+document.addEventListener('click', e => {
+    if (e.clientX) return;
     HEADER.style.display = (HEADER.style.display === 'block') ? 'none' : 'block';
+    window.dispatchEvent(new Event('resize'));
 });
 
 window.addEventListener('load', e => {
