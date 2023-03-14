@@ -1,59 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>學習筆記</title>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<style>
-body {
-    background-color: #222;
-    color: DDD;
-    margin: 0;
-}
-table {
-    border-collapse: collapse;
-}
-td {
-    border: 1px solid #DDD;
-}
-li table {
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-li td, table.center td {
-    padding: 5px;
-    text-align: center;
-}
-.collapsible {
-    background-color: #222;
-    color: #DDD;
-    font-size: 20px;
-    cursor: pointer;
-    width: 100%;
-    padding: 10px;
-    border: none;
-    text-align: left;
-    outline: none;
-}
-.active, .collapsible:hover {
-    background-color: #333;
-}
-.content {
-    padding: 0 10px;
-    max-height: 0;
-    overflow: hidden;
-    background-color: #333;
-    transition: max-height 0.5s ease-out;
-}
-.vertical {
-    writing-mode: vertical-lr;
-}
-</style>
-</head>
-
-<body>
-<h1>學習筆記</h1>
-
+<h2>學習筆記</h2>
 <section>
   <button type="button" class="collapsible">國文</button>
   <article class="content">
@@ -2120,19 +2065,3 @@ li td, table.center td {
     \end{align}\]
   </article>
 </section>
-</body>
-</html>
-
-<script>
-for (let i of document.getElementsByClassName("collapsible")) {
-    i.addEventListener("click", function() {
-        this.classList.toggle("active");
-        let content = this.nextElementSibling;
-        if (content.style.maxHeight) {
-            content.style.maxHeight = null;
-        } else {
-            content.style.maxHeight = content.scrollHeight + "px";
-        }
-    });
-}
-</script>

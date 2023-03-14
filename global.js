@@ -58,8 +58,8 @@ const ROOT = new Directory({
         main: ['html'],
         children: [{
             name: 'tcivs',
-            text: '中工',
-            main: ['html']
+            text: '統測筆記',
+            main: ['html', 'css', 'javascript']
         }, {
             name: 'compare',
             text: '程式語言比較',
@@ -95,8 +95,13 @@ const cd = (() => {
         MAIN.innerHTML = '';
         if (pwd?.css) pwd.css.remove();
         if (pwd?.js) pwd.js.remove();
-        if (pwd && pwd !== ROOT) pwd.button.style.boxShadow = '';
         
+        if (pwd && pwd !== ROOT) pwd.button.style.boxShadow = '';
+        // if (pwd && pwd !== ROOT) pwd.button.style.textShadow = '';
+        if (dir !== ROOT) dir.button.style.boxShadow = 'inset 0.2em 0 #fff, inset 1em 0 1em -1em #fff';
+        // if (dir !== ROOT) dir.button.style.textShadow = '#ddd 0 0 0.1em';
+        
+        history.pushState(undefined, undefined, `/?dir=${dir.path}`);
         
         if (dir.main?.includes('html')) {
             await fetch(dir.path + 'main.html')
@@ -117,9 +122,8 @@ const cd = (() => {
             document.head.appendChild(dir.js);
         }
         
-        if (dir !== ROOT) dir.button.style.boxShadow = 'inset 0.2em 0 #fff';
+        MathJax.typesetPromise();
         
-        history.pushState(undefined, undefined, `/?dir=${dir.path}`);
         pwd = dir;
     }
 })();

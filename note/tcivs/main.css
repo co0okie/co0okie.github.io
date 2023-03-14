@@ -1,0 +1,47 @@
+main h3 {
+    padding-top: 1em;
+    padding-bottom: 0.5em;
+}
+main table {
+    border-collapse: collapse;
+}
+main td {
+    border: 1px solid #DDD;
+    padding: 4px 3px;
+}
+main li table {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+main li td, table.center td {
+    padding: 5px;
+    text-align: center;
+}
+main .collapsible {
+    background-color: #222;
+    color: #DDD;
+    font-size: 20px;
+    cursor: pointer;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    text-align: left;
+    outline: none;
+}
+main .active, main .collapsible:hover {
+    background-color: #333;
+}
+main .content {
+    padding: 0 10px;
+    max-height: 0;
+    overflow: hidden;
+    background-color: #333;
+    transition: max-height 0.5s ease-out;
+    margin-bottom: 10px;
+}
+main .vertical {
+    writing-mode: vertical-lr;
+}
+main li {
+    line-height: 120%;
+}

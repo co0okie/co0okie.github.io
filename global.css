@@ -4,7 +4,6 @@
 }
 * {
     color: #ddd;
-    font-size: 18px;
     box-sizing: border-box;
 }
 html, body {
@@ -14,6 +13,7 @@ body {
     background-color: #222;
     font-family: Arial, Helvetica, sans-serif;
     display: flex;
+    font-size: 18px;
 }
 
 /* * * header * * */
@@ -26,6 +26,9 @@ header .button {
     user-select: none;
     white-space: nowrap;
     cursor: pointer;
+}
+header .button:hover {
+    box-shadow: inset 1em 0 1em -1em #fff;
 }
 header > .button {
     font-size: 28px;
