@@ -1,0 +1,160 @@
+{
+  "head": {
+    "languages": ["C++", "Java", "JavaScript", "Python"],
+    "titles": [
+      "Print",
+      "Statement End",
+      "Variable",
+      "Modules",
+      "Basic Arithmetic Operators",
+      "Power",
+      "In-Place Operators",
+      "Comparison Operators",
+      "Increment Decrement",
+      "Ternary Operator",
+      "Comment",
+      "String Quotation Marks",
+      "Conditional Statements",
+      "Loop",
+      "Array",
+      "Constant",
+      "Function",
+      "Exception"
+    ]
+  },
+  "body": {
+    "C++": {
+      "Print": ["printf(\"sample\")", "cout << \"sample\""],
+      "Statement End": [";"],
+      "Variable": [
+        "short",
+        "int",
+        "long",
+        "float",
+        "double",
+        "char",
+        "bool"
+      ],
+      "Modules": ["#include"],
+      "Basic Arithmetic Operators": ["+ - * / %"],
+      "Power": ["std::pow()"],
+      "In-Place Operators": ["+= -= *= /= %="],
+      "Comparison Operators": ["== != > >= < <="],
+      "Increment Decrement": ["++", "--"],
+      "Ternary Operator": ["A ? B : C"],
+      "Comment": ["//sample", "/*sample*/"],
+      "String Quotation Marks": ["\"sample\""],
+      "Conditional Statements": [
+        "if",
+        "else if",
+        "else",
+        "switch case default"
+      ],
+      "Loop": ["while", "do while", "for"],
+      "Array": ["{\"sample\"}"],
+      "Constant": ["#define", "const"],
+      "Function": [
+        "short",
+        "int",
+        "long",
+        "float",
+        "double",
+        "string",
+        "char",
+        "bool",
+        "void"
+      ],
+      "Exception": ["try catch"]
+    },
+    "Java": {
+      "Print": ["System.out.println(\"sample\")"],
+      "Statement End": [";"],
+      "Variable": ["int", "float", "double", "String", "char", "boolean"],
+      "Modules": ["import"],
+      "Basic Arithmetic Operators": ["+ - * / %"],
+      "Power": ["Math.pow()"],
+      "In-Place Operators": ["+= -= *= /= %="],
+      "Comparison Operators": ["== != > >= < <="],
+      "Increment Decrement": ["++", "--"],
+      "Ternary Operator": ["A ? B : C"],
+      "Comment": ["//sample", "/*sample*/", "/**sample*/"],
+      "String Quotation Marks": ["\"sample\""],
+      "Conditional Statements": [
+        "if",
+        "else if",
+        "else",
+        "switch case default"
+      ],
+      "Loop": ["while", "do while", "for"],
+      "Array": ["{\"sample\"}"],
+      "Constant": ["final"],
+      "Function": [
+        "int",
+        "float",
+        "double",
+        "String",
+        "char",
+        "boolean",
+        "void"
+      ],
+      "Exception": ["try catch"]
+    },
+    "JavaScript": {
+      "Print": ["console.log('sample')"],
+      "Statement End": [";"],
+      "Variable": ["number", "string", "boolean", "bigint", "symbol", "object", "function", "undefined"],
+      "Variable Declare": ["var", "let"],
+      "Modules": ["import"],
+      "Basic Arithmetic Operators": ["+ - * / %"],
+      "Power": ["Math.pow()"],
+      "In-Place Operators": ["+= -= *= /= %="],
+      "Comparison Operators": ["== === != !==", "> >= < <="],
+      "Increment Decrement": ["++", "--"],
+      "Ternary Operator": ["A ? B : C"],
+      "Comment": ["//sample", "/*sample*/"],
+      "String Quotation Marks": ["'sample'", "\"sample\"", ""],
+      "Conditional Statements": [
+        "if",
+        "else if",
+        "else",
+        "switch case default"
+      ],
+      "Loop": ["while", "do while", "for"],
+      "Array": ["Array('sample')", "['sample']"],
+      "Constant": ["const"],
+      "Function": ["function"],
+      "Exception": ["try catch"]
+    },
+    "Python": {
+      "Print": ["print('sample')"],
+      "Statement End": [""],
+      "Variable": [
+        "int float complex",
+        "str",
+        "bool",
+        "list tuple range",
+        "dict",
+        "set frozenset",
+        "bytes bytearray memoryview"
+      ],
+      "Modules": ["import", "import from", "import as"],
+      "Basic Arithmetic Operators": ["+ - * / // %"],
+      "Power": ["**"],
+      "In-Place Operators": ["+= -= *= /=", "//= %= **="],
+      "Comparison Operators": ["== != > >= < <="],
+      "Increment Decrement": [""],
+      "Ternary Operator": ["B if A else C"],
+      "Comment": ["#sample"],
+      "String Quotation Marks": [
+        "'sample'",
+        "\"sample\"",
+        "\"\"\"sample\"\"\""
+      ],
+      "Conditional Statements": ["if", "elif", "else"],
+      "Loop": ["while", "for in"],
+      "Array": ["['sample']"],
+      "Function": ["def"],
+      "Exception": ["try except"]
+    }
+  }
+}

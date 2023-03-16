@@ -63,7 +63,7 @@ const ROOT = new Directory({
         }, {
             name: 'compare',
             text: '程式語言比較',
-            main: ['html', 'css']
+            main: ['css', 'javascript']
         }, {
             name: 'linux',
             text: 'Linux',

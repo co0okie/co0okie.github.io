@@ -85,7 +85,7 @@ a:hover {
 article.linklist > a {
     display: block;
     width: fit-content;
-    line-height: 120%;
+    line-height: 140%;
 }
 article.linklist > a:hover {
     text-shadow: #ddd 0 0 0.1em;
