@@ -5,21 +5,24 @@
       "Print",
       "Statement End",
       "Variable",
+      "Variable Declaration",
+      "Constant",
       "Modules",
-      "Basic Arithmetic Operators",
-      "Power",
-      "In-Place Operators",
+      "Arithmetic Operators",
+      "Assignment Operators",
       "Comparison Operators",
-      "Increment Decrement",
+      "Logical Operators",
+      "Bitwise Operators",
       "Ternary Operator",
-      "Comment",
-      "String Quotation Marks",
-      "Conditional Statements",
+      "Pointer Operator",
+      "Comment Documentation",
+      "String Quotation",
+      "Condition",
       "Loop",
       "Array",
-      "Constant",
       "Function",
-      "Exception"
+      "Exception",
+      "Format String"
     ]
   },
   "body": {
@@ -33,101 +36,110 @@
         "float",
         "double",
         "char",
-        "bool"
+        "bool",
+        "|Variable| *",
+        "void"
+      ],
+      "Variable Declaration": [
+        "|Variable| sample = |Value|",
+        "|Variable| sample(|Args|)",
+        "auto sample = |Value|"
       ],
       "Modules": ["#include"],
-      "Basic Arithmetic Operators": ["+ - * / %"],
-      "Power": ["std::pow()"],
-      "In-Place Operators": ["+= -= *= /= %="],
+      "Arithmetic Operators": ["+ - * / % ++ --"],
+      "Assignment Operators": ["= += -= *= /= %=", "&= |= ^= <<= >>="],
       "Comparison Operators": ["== != > >= < <="],
-      "Increment Decrement": ["++", "--"],
+      "Logical Operators": ["&& || !"],
+      "Bitwise Operators": ["& | ~ ^ << >>"],
       "Ternary Operator": ["A ? B : C"],
-      "Comment": ["//sample", "/*sample*/"],
-      "String Quotation Marks": ["\"sample\""],
-      "Conditional Statements": [
+      "Pointer Operator": [
+        "* &",
+        "A->B == (*A).B",
+        "A[B] == *(A + B)",
+        "new delete"
+      ],
+      "Comment Documentation": ["// sample", "/* sample */"],
+      "String Quotation": ["\"sample\""],
+      "Condition": [
         "if",
         "else if",
         "else",
         "switch case default"
       ],
-      "Loop": ["while", "do while", "for"],
-      "Array": ["{\"sample\"}"],
+      "Loop": ["while", "do while", "for (;;)", "for (:)"],
+      "Array": ["{1, 2, 3}"],
       "Constant": ["#define", "const"],
       "Function": [
-        "short",
-        "int",
-        "long",
-        "float",
-        "double",
-        "string",
-        "char",
-        "bool",
-        "void"
+        "|Variable|"
       ],
-      "Exception": ["try catch"]
+      "Exception": ["try catch finally"]
     },
     "Java": {
       "Print": ["System.out.println(\"sample\")"],
       "Statement End": [";"],
       "Variable": ["int", "float", "double", "String", "char", "boolean"],
+      "Variable Declaration": [
+        "|Variable| sample = |Value|",
+        "|Variable| sample = new |Variable|(|Args|)",
+        "var sample = |Value|",
+        "var sample = new |Variable|(|Args|)"
+      ],
       "Modules": ["import"],
-      "Basic Arithmetic Operators": ["+ - * / %"],
-      "Power": ["Math.pow()"],
-      "In-Place Operators": ["+= -= *= /= %="],
+      "Arithmetic Operators": ["+ - * / % ++ --"],
+      "Assignment Operators": ["= += -= *= /= %=", "&= |= ^= <<= >>="],
       "Comparison Operators": ["== != > >= < <="],
-      "Increment Decrement": ["++", "--"],
+      "Logical Operators": ["&& || !"],
+      "Bitwise Operators": ["& | ~ ^ << >>"],
       "Ternary Operator": ["A ? B : C"],
-      "Comment": ["//sample", "/*sample*/", "/**sample*/"],
-      "String Quotation Marks": ["\"sample\""],
-      "Conditional Statements": [
+      "Comment Documentation": ["// sample", "/* sample */", "/** sample */"],
+      "String Quotation": ["\"sample\""],
+      "Condition": [
         "if",
         "else if",
         "else",
         "switch case default"
       ],
-      "Loop": ["while", "do while", "for"],
-      "Array": ["{\"sample\"}"],
+      "Loop": ["while", "do while", "for (;;)", "for (:)"],
+      "Array": ["{1, 2, 3}"],
       "Constant": ["final"],
-      "Function": [
-        "int",
-        "float",
-        "double",
-        "String",
-        "char",
-        "boolean",
-        "void"
-      ],
-      "Exception": ["try catch"]
+      "Function": ["|Variable|"],
+      "Exception": ["try catch finally"],
+      "Format String": ["String.format(\"%d\", 1)"]
     },
     "JavaScript": {
-      "Print": ["console.log('sample')"],
+      "Print": ["alert('sample')", "console.log('sample')"],
       "Statement End": [";"],
       "Variable": ["number", "string", "boolean", "bigint", "symbol", "object", "function", "undefined"],
-      "Variable Declare": ["var", "let"],
-      "Modules": ["import"],
-      "Basic Arithmetic Operators": ["+ - * / %"],
-      "Power": ["Math.pow()"],
-      "In-Place Operators": ["+= -= *= /= %="],
-      "Comparison Operators": ["== === != !==", "> >= < <="],
-      "Increment Decrement": ["++", "--"],
+      "Variable Declaration": [
+        "var sample = |Value|",
+        "let sample = |Value|",
+        "var sample = new |Variable|(|Args|)",
+        "let sample = new |Variable|(|Args|)"
+      ],
+      "Modules": ["import as from"],
+      "Arithmetic Operators": ["+ - * / % ** ++ --"],
+      "Assignment Operators": ["= += -= *= /= %= **=", "&= |= ^= <<= >>= >>>="],
+      "Logical Operators": ["&& || !"],
+      "Bitwise Operators": ["& | ~ ^ << >>"],
+      "Comparison Operators": ["== === != !==", "> >= < <= in"],
       "Ternary Operator": ["A ? B : C"],
-      "Comment": ["//sample", "/*sample*/"],
-      "String Quotation Marks": ["'sample'", "\"sample\"", ""],
-      "Conditional Statements": [
+      "Comment Documentation": ["// sample", "/* sample */", "/** sample */"],
+      "String Quotation": ["'sample'", "\"sample\"", "`sample`"],
+      "Condition": [
         "if",
         "else if",
         "else",
         "switch case default"
       ],
-      "Loop": ["while", "do while", "for"],
-      "Array": ["Array('sample')", "['sample']"],
+      "Loop": ["while", "do while", "for (;;)", "for (in)", "for (of)"],
+      "Array": ["[1, 2, 3]"],
       "Constant": ["const"],
       "Function": ["function"],
-      "Exception": ["try catch"]
+      "Exception": ["try catch finally"],
+      "Format String": ["`${sample}`"]
     },
     "Python": {
       "Print": ["print('sample')"],
-      "Statement End": [""],
       "Variable": [
         "int float complex",
         "str",
@@ -137,24 +149,26 @@
         "set frozenset",
         "bytes bytearray memoryview"
       ],
-      "Modules": ["import", "import from", "import as"],
-      "Basic Arithmetic Operators": ["+ - * / // %"],
-      "Power": ["**"],
-      "In-Place Operators": ["+= -= *= /=", "//= %= **="],
-      "Comparison Operators": ["== != > >= < <="],
-      "Increment Decrement": [""],
+      "Variable Declaration": ["sample = |Value|", "sample = |Variable|(|Args|)"],
+      "Modules": ["from import as"],
+      "Arithmetic Operators": ["+ - * / // % **"],
+      "Assignment Operators": ["+= -= *= /= //= %= **=", "&= |= ^= <<= >>="],
+      "Comparison Operators": ["== != > >= < <= is in"],
+      "Logical Operators": ["and or not"],
+      "Bitwise Operators": ["& | ~ ^ << >>"],
       "Ternary Operator": ["B if A else C"],
-      "Comment": ["#sample"],
-      "String Quotation Marks": [
+      "Comment Documentation": ["# sample"],
+      "String Quotation": [
         "'sample'",
         "\"sample\"",
         "\"\"\"sample\"\"\""
       ],
-      "Conditional Statements": ["if", "elif", "else"],
+      "Condition": ["if", "elif", "else"],
       "Loop": ["while", "for in"],
-      "Array": ["['sample']"],
+      "Array": ["[1, 2, 3]"],
       "Function": ["def"],
-      "Exception": ["try except"]
+      "Exception": ["try except finally"],
+      "Format String": ["'%d' % (1)", "'{}'.format(sample)", "f'{sample}'"]
     }
   }
 }

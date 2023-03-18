@@ -1,17 +1,15 @@
-@import url(https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css);
-
 main table {
-    font-family: "Fira Code", Consolas, monospace;
-    font-feature-settings: "cv01", "cv02", "ss02", "ss03", "ss05", "ss07", "ss09";
+    font-family: monospace;
 }
 main td, main th {
     box-shadow: inset -1px -1px #ddd;
     vertical-align: middle;
+    padding: 5px;
 }
 main td {
     font-size: 12pt;
-    padding: 5px;
     text-align: center;
+    white-space: nowrap;
 }
 main thead, main th:first-child {
     position: sticky;
@@ -30,4 +28,8 @@ main th:first-child {
 }
 main thead th:first-child {
     box-shadow: inset 0 0 0 1px #ddd;
+}
+main td.empty {
+    background-image: linear-gradient(to bottom right,  transparent calc(50% - 1px), #aaa, transparent calc(50% + 1px)),
+                      linear-gradient(to bottom left ,  transparent calc(50% - 1px), #aaa, transparent calc(50% + 1px));
 }

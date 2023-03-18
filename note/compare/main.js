@@ -33,7 +33,12 @@ fetch('/note/compare/table.json')
         for (let language of json.head.languages) {
             let td = document.createElement('td');
             tr.appendChild(td);
-            td.innerHTML = json.body[language][title]?.join('<br>') || '';
+            let content = json.body[language][title];
+            if (content) {
+                td.innerHTML = content.join('<br>');
+            } else {
+                td.classList.add('empty');
+            }
         }
     }
 });

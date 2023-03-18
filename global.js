@@ -77,9 +77,9 @@ const ROOT = new Directory({
             text: '旋轉磁場',
             main: ['css', 'javascript']
         }, {
-            name: 'ffmpeg',
-            text: 'FFmpeg',
-            main: ['html']
+            name: '1a2b',
+            text: '1A2B',
+            main: ['javascript']
         }]
     }],
     clickToExpand: false
@@ -97,9 +97,7 @@ const cd = (() => {
         if (pwd?.js) pwd.js.remove();
         
         if (pwd && pwd !== ROOT) pwd.button.style.boxShadow = '';
-        // if (pwd && pwd !== ROOT) pwd.button.style.textShadow = '';
         if (dir !== ROOT) dir.button.style.boxShadow = 'inset 0.2em 0 #fff, inset 1em 0 1em -1em #fff';
-        // if (dir !== ROOT) dir.button.style.textShadow = '#ddd 0 0 0.1em';
         
         history.pushState(undefined, undefined, `/?dir=${dir.path}`);
         

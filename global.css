@@ -63,6 +63,11 @@ a {
 a:hover {
     cursor: pointer;
 }
+input {
+    background-color: #ffffff11;
+    border: none;
+    outline: none;
+}
 ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
