@@ -68,6 +68,18 @@ const ROOT = new Directory({
             name: 'linux',
             text: 'Linux',
             main: ['html']
+        }, {
+            name: 'ntust',
+            text: '台科大',
+            children: [{
+                name: 'algebra',
+                text: '線性代數',
+                main: ['html']
+            }, {
+                name: 'physics',
+                text: '物理',
+                main: ['html']
+            }]
         }]
     }, {
         name: 'work',

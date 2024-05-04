@@ -60,6 +60,25 @@ async function computerGuess() {
         // 3(0, 1)(0, 0), 5(0, 0)(1, 1), 2(0, 1)(0, 0), 4(1, 1)(0, 0) => (1, 3)(1, 1)
         // 3(0, 1)(0, 0), 5(0, 0)(1, 1), 2(0, 1)(0, 0), ...
         // 3(0, 1)(0, 0), 5(0, 0)(1, 1), ...
+
+        /** @param {Array} options */
+        function decide(options, deep = 0) {
+            while (options.length) {
+                // option: { number, ranges: { minA, minB }[], options }
+                let randomIndex = Math.floor(Math.random() * options.length);
+                let option = options[randomIndex];
+                
+                if (records.some((record, i) => {
+                    if (option.ranges[i]) return false;
+                    
+                    let pos = record.guess.indexOf(n);
+                    let AB = pos ===  deep ? [1, 1] : pos !== -1 ? [0, 1] : [0, 0];
+                    
+                })) {
+                    
+                }
+            }
+        }
         
         // guess
         let guess = [];
