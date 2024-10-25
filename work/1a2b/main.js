@@ -1,5 +1,3 @@
-{
-
 function on(element, type) {
     return new Promise(r => element.addEventListener(type, r, { once: true }));
 }
@@ -174,41 +172,42 @@ const computerGuessButton = document.createElement('input');
 const input = document.createElement('input');
 const replay = document.createElement('input');
 const recordText = document.createElement('p');
-MAIN.append(dialog, playerGuessButton, computerGuessButton, input, replay, recordText);
-playerGuessButton.type = computerGuessButton.type = 'button';
-playerGuessButton.value = 'player guess';
-computerGuessButton.value = 'computer guess';
-input.style.width = '10ch';
-replay.type = 'button';
-replay.value = 'replay';
 
 let numberLength;
 
-(async () => {
-    for (;;) {
-        input.style.display = 'none';
-        replay.style.display = 'none';
-        playerGuessButton.style.display = '';
-        computerGuessButton.style.display = '';
-        recordText.innerHTML = '';
-        dialog.innerHTML = 'number length:';
-        numberLength = 9;
-        input.maxLength = numberLength;
-        dialog.innerHTML = 'select game mode:';
-        let game = await new Promise(r => {
-            on(playerGuessButton, 'click').then(e => r(playerGuess));
-            on(computerGuessButton, 'click').then(e => r(computerGuess));
-        });
-        
-        playerGuessButton.style.display = 'none';
-        computerGuessButton.style.display = 'none';
-        input.style.display = '';
-        dialog.innerHTML = 'start';
-        await game();
-        input.style.display = 'none';
-        replay.style.display = '';
-        await on(replay, 'click');
-    }
-})()
-
-}
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.append(dialog, playerGuessButton, computerGuessButton, input, replay, recordText);
+    playerGuessButton.type = computerGuessButton.type = 'button';
+    playerGuessButton.value = 'player guess';
+    computerGuessButton.value = 'computer guess';
+    input.style.width = '10ch';
+    replay.type = 'button';
+    replay.value = 'replay';
+    
+    (async () => {
+        for (;;) {
+            input.style.display = 'none';
+            replay.style.display = 'none';
+            playerGuessButton.style.display = '';
+            computerGuessButton.style.display = '';
+            recordText.innerHTML = '';
+            dialog.innerHTML = 'number length:';
+            numberLength = 9;
+            input.maxLength = numberLength;
+            dialog.innerHTML = 'select game mode:';
+            let game = await new Promise(r => {
+                on(playerGuessButton, 'click').then(e => r(playerGuess));
+                on(computerGuessButton, 'click').then(e => r(computerGuess));
+            });
+            
+            playerGuessButton.style.display = 'none';
+            computerGuessButton.style.display = 'none';
+            input.style.display = '';
+            dialog.innerHTML = 'start';
+            await game();
+            input.style.display = 'none';
+            replay.style.display = '';
+            await on(replay, 'click');
+        }
+    })()
+})

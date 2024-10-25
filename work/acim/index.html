@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>三相多極電機旋轉磁場</title>
+    <style>
+    body {
+        font-size: 16pt;
+        background-color: #222;
+        color: #DDD;
+        margin: 0;
+    }
+    .control {
+        display: inline-block;
+        margin: 30px;
+        padding: 10px;
+        text-align: center;
+        position: fixed;
+        border: 3px solid #DDD;
+        border-radius: 10px;
+    }
+    button {
+        font-size: inherit;
+        margin: 10px;
+        border: 1px solid transparent;
+        color: inherit;
+        background-color: transparent;
+    }
+    button:hover {
+        border: 1px solid #DDD;
+        color: inherit;
+        background-color: transparent;
+    }
+    button:active {
+        border: 1px solid transparent;
+        color: #222;
+        background-color: #DDD;
+    }
+    #switch {
+        padding: 10px;
+        border-radius: 5px;
+    }
+    .inc {
+        width: 1.5em; height: 1.5em;
+        border-radius: 50%;
+    }
+    span {
+        width: 1.5em;
+        font-size: inherit;
+        display: inline-block;
+    }
+    #acim {
+        display: block;
+        margin: auto;
+        max-height: 100vh;
+    }
+    </style>
+  </head>
+  <body onload="refresh()">
+    <div class="control">
+      <table>
+        <tr>
+          <td colspan="3"><button id="switch" onclick="onClick(0)">開始停止</button></td>
+        </tr>
+        <tr>
+          <td><button class="inc" onclick="onClick(1)">-</button></td>
+          <td>極數：<span id="p">極數</span>極</td>
+          <td><button class="inc" onclick="onClick(2)">+</button></td>
+        </tr>
+        <tr>
+          <td><button class="inc" onclick="onClick(3)">-</button></td>
+          <td>ωt：<span id="ot">角度</span>°</td>
+          <td><button class="inc" onclick="onClick(4)">+</button></td>
+        </tr>
+        <tr>
+          <td><button class="inc" onclick="onClick(5)">-</button></td>
+          <td>速度：<span id="inc">遞增值</span></td>
+          <td><button class="inc" onclick="onClick(6)">+</button></td>
+        </tr>
+      </table>
+    </div>
+    <canvas id="acim"/>
+  </body>
+</html>
+<script>
+var canvas = document.getElementById("acim");
+var ctx = canvas.getContext("2d");
+canvas.width = 1000;
+canvas.height = 1000;
+ctx.lineWidth = 2;
+
+// 角度轉徑度
+// d: 角度 degree
+// rad: 徑度 radian
+function deg(d) { return d * Math.PI / 180 }
+
+// 校正至中心點
+// cal: 校正 calibrate
+function cal([x, y]) {
+    return [canvas.width / 2 + x,
+            canvas.height / 2 - y];
+}
+
+// r∠a°轉(x, y)
+// r: 半徑 radius
+// a: 角度 angle
+function ra(r, a) {
+    return [r * Math.cos(deg(a)),
+            r * Math.sin(deg(a))];
+}
+
+// 導體 conductor
+// r: 半徑 radius
+// a: 角度 angle
+// i: 電流大小(-1 ~ 1)
+function conductor(r, a, i) {
+    // 圓圈邊
+    ctx.beginPath();  
+    [x, y] = cal(ra(r, a));
+    ctx.arc(x, y, 15, 0, deg(360));
+    ctx.stroke();
+    
+    // 圓圈內
+    ctx.globalAlpha = Math.abs(i);
+    ctx.beginPath();
+    if (i > 0) {
+        // 一點(流出紙面)
+        ctx.arc(x, y, 6, 0, deg(360));
+        ctx.fill();
+    } else {
+        // 叉叉(流入紙面)
+        [xx, yy] = ra(15, 45);
+        ctx.moveTo(x + xx, y + yy);
+        ctx.lineTo(x - xx, y - yy);
+        ctx.moveTo(x - xx, y + yy);
+        ctx.lineTo(x + xx, y - yy);
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+}
+
+// 磁場(箭頭) magnetic field
+// r: 半徑 radius
+// v: 向量 vector
+// a: 角度 angle
+var arrowSize = 20;
+function field(r, v, a) {
+    // 三角形高
+    h = v > 0 ? arrowSize : -arrowSize;
+    h = Math.abs(v) < arrowSize ? v : h;
+    
+    // 線段
+    ctx.beginPath();
+    [x, y] = cal(ra(r - v, a));
+    ctx.moveTo(x, y);
+    [x, y] = cal(ra(r + v - h, a));
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    
+    // 三角形
+    ctx.beginPath();
+    [x, y] = cal(ra(r + v, a));
+    ctx.moveTo(x, y);
+    [xx, yy] = ra(h / Math.cos(deg(20)), a + 160);
+    ctx.lineTo(x + xx, y - yy); // y反向
+    [xx, yy] = ra(h / Math.cos(deg(20)), a + 200);
+    ctx.lineTo(x + xx, y - yy); // y反向
+    ctx.fill();
+}
+
+
+var p = 4; // 極數
+var ot = 0; // ωt
+const color = ["#F22", "#22F", "#2F2", "#FFF"];
+function refresh() {
+    // 更新面板顯示資訊
+    document.getElementById("switch").innerHTML = mode ? "停止" : "開始";
+    document.getElementById("p").innerHTML = p;
+    document.getElementById("ot").innerHTML = Math.round(ot);
+    document.getElementById("inc").innerHTML = inc;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // 清空畫布
+    // 紅R: sin(ωt + 0°);
+    // 綠G: sin(ωt - 120°);
+    // 藍B: sin(ωt - 240°);
+    for (i = 0; i < p * 3; i++) {
+        ctx.strokeStyle = color[i % 3];
+        ctx.fillStyle = color[i % 3];
+        
+        // 導體
+        r = 300;
+        a = i * 120 / p;
+        t = Math.sin(deg(ot - i * 60));
+        conductor(r, a, t);
+        
+        // 各相磁場
+        r = 300 * Math.cos(deg(180 / p));
+        v = 100 * Math.sin(deg(ot - i * 60));
+        a = - 180 / p + i * 120 / p;
+        field(r, v, a);
+    }
+    
+    // 旋轉磁場
+    ctx.strokeStyle = color[3];
+    ctx.fillStyle = color[3];
+    ctx.lineWidth = 4;
+    arrowSize = 30;
+    for (i = 0; i < p; i++) {
+        r = 300 * Math.cos(deg(180 / p));
+        v = (100 + 100 * Math.cos(deg(120 / p)))
+            * Math.pow(-1, i);
+        a = (i - 1) * 360 / p + ot / (p / 2);
+        field(r, v, a);
+    }
+    ctx.lineWidth = 2;
+    arrowSize = 20;
+}
+
+var mode = 0; // 0 停止, 1 轉動
+var counter; // 重複執行函式
+var inc = 5; // 遞增值(速度) increment
+function onClick(id) {
+    switch (id) {
+      case 0: // 暫停/開始轉動
+        mode = !mode;
+        if (mode) {
+            counter = setInterval(() => {
+                ot += inc / 10;
+                while (ot >= 360) ot -= 360;
+                refresh();
+            }, 10);
+        } else {
+            clearInterval(counter);
+        }
+        break;
+      case 1: // 減少極數
+        if (p > 2) p -= 2;
+        break;
+      case 2: // 增加極數
+        if (p < 100) p += 2;
+        break;
+      case 3: // 減少 ωt
+        ot -= inc;
+        while (ot < 0) ot += 360;
+        break;
+      case 4: // 增加 ωt
+        ot += inc;
+        while (ot >= 360) ot -= 360;
+        break;
+      case 5: // 減少速度
+        if (inc > 0) inc -= 1;
+        break;
+      case 6: // 增加速度
+        inc += 1;
+        break;
+    }
+    refresh();
+}
+</script>
