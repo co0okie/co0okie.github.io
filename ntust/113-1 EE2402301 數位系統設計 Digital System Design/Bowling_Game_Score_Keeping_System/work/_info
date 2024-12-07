@@ -1,0 +1,251 @@
+m255
+K4
+z2
+!s11f vlog 2020.1 2020.02, Feb 28 2020
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dC:/intelFPGA/20.1
+vAPD_Logic
+Z0 !s110 1732462596
+!i10b 1
+!s100 nK]Zf@Oo`BcS^_1MmNj>E1
+Z1 !s11b Dg1SIo80bB@j0V0VzS_@n1
+I`2G1Z8fDE:5heTgET1g7V3
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+Z3 dC:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System
+Z4 w1732446120
+Z5 8C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Bowling_Game_Score_Keeping_System.v
+Z6 FC:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Bowling_Game_Score_Keeping_System.v
+!i122 2
+L0 101 14
+Z7 OV;L;2020.1;71
+r1
+!s85 0
+31
+Z8 !s108 1732462596.000000
+Z9 !s107 C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Bowling_Game_Score_Keeping_System.v|
+Z10 !s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Bowling_Game_Score_Keeping_System.v|
+!i113 1
+Z11 o-work work
+Z12 tCvgOpt 0
+n@a@p@d_@logic
+vBCD_to_Seven_Segment
+R0
+!i10b 1
+!s100 dIzRHlDVDWK6PDRn@IZj]3
+R1
+IYURQP_hEWZg8dY2O1YMY`3
+R2
+R3
+w1732440329
+8C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/BCD_to_Seven_Segment.v
+FC:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/BCD_to_Seven_Segment.v
+!i122 0
+L0 1 20
+R7
+r1
+!s85 0
+31
+R8
+!s107 C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/BCD_to_Seven_Segment.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/BCD_to_Seven_Segment.v|
+!i113 1
+R11
+R12
+n@b@c@d_to_@seven_@segment
+vBinary_to_BCD
+R0
+!i10b 1
+!s100 :fE1F4`H1o2XF<cQ:@2@_2
+R1
+IPR=L>A]IQWI_?JEI5EUU13
+R2
+R3
+w1732440346
+8C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Binary_to_BCD.v
+FC:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Binary_to_BCD.v
+!i122 1
+L0 1 18
+R7
+r1
+!s85 0
+31
+R8
+!s107 C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Binary_to_BCD.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Binary_to_BCD.v|
+!i113 1
+R11
+R12
+n@binary_to_@b@c@d
+vBowling_Game_Score_Keeping_System
+R0
+!i10b 1
+!s100 7iA1ed_9^[_niOl=VcG:k1
+R1
+I1PW0FJA0BRQR:zPz3>[170
+R2
+R3
+R4
+R5
+R6
+!i122 2
+L0 1 19
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 1
+R11
+R12
+n@bowling_@game_@score_@keeping_@system
+vController
+R0
+!i10b 1
+!s100 GEMHE^JXQ`520@jM_:<XW3
+R1
+IKa^n2;><??LcNfAzYEdY?3
+R2
+R3
+R4
+R5
+R6
+!i122 2
+L0 21 79
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 1
+R11
+R12
+n@controller
+vFrame_Counter
+R0
+!i10b 1
+!s100 IhSQDQ]NIcZCYiR=o2FDK0
+R1
+I0cXcX6?8JeUoheHGDgV`k1
+R2
+R3
+R4
+R5
+R6
+!i122 2
+L0 129 15
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 1
+R11
+R12
+n@frame_@counter
+vScore_Register
+R0
+!i10b 1
+!s100 B6k@4eG`DZWl@XnjGR_3M3
+R1
+Ia>;3;P:b1]DCZYj5El8Th0
+R2
+R3
+R4
+R5
+R6
+!i122 2
+L0 116 12
+R7
+r1
+!s85 0
+31
+R8
+R9
+R10
+!i113 1
+R11
+R12
+n@score_@register
+vtb_BCD_to_Seven_Segment
+R0
+!i10b 1
+!s100 W:bk2?DnHohNP15@9BFZ12
+R1
+IKDm>IDY`X8[k]T9RSkVTE0
+R2
+R3
+w1732440311
+8C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_BCD_to_Seven_Segment.v
+FC:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_BCD_to_Seven_Segment.v
+!i122 3
+L0 1 12
+R7
+r1
+!s85 0
+31
+R8
+!s107 C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_BCD_to_Seven_Segment.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_BCD_to_Seven_Segment.v|
+!i113 1
+R11
+R12
+ntb_@b@c@d_to_@seven_@segment
+vtb_Binary_to_BCD
+R0
+!i10b 1
+!s100 E41VmChSOJzkkVT<=F4j53
+R1
+I]Fg8JaT=0fX[BQjN3fV6T0
+R2
+R3
+w1732440613
+8C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Binary_to_BCD.v
+FC:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Binary_to_BCD.v
+!i122 4
+L0 1 13
+R7
+r1
+!s85 0
+31
+R8
+!s107 C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Binary_to_BCD.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Binary_to_BCD.v|
+!i113 1
+R11
+R12
+ntb_@binary_to_@b@c@d
+vtb_Bowling_Game_Score_Keeping_System
+!s110 1732462597
+!i10b 1
+!s100 `loPRIVdjYi0DSNH`hUk31
+R1
+I_K8z[_A[[FbVMcSRL]D@j0
+R2
+R3
+w1732461285
+8C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Bowling_Game_Score_Keeping_System.v
+FC:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Bowling_Game_Score_Keeping_System.v
+!i122 5
+L0 1 80
+R7
+r1
+!s85 0
+31
+!s108 1732462597.000000
+!s107 C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Bowling_Game_Score_Keeping_System.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Bowling_Game_Score_Keeping_System.v|
+!i113 1
+R11
+R12
+ntb_@bowling_@game_@score_@keeping_@system

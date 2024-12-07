@@ -1,0 +1,32 @@
+# Compile of BCD_to_Seven_Segment.v was successful.
+# Compile of Binary_to_BCD.v was successful.
+# Compile of Bowling_Game_Score_Keeping_System.v was successful.
+# Compile of tb_BCD_to_Seven_Segment.v was successful.
+# Compile of tb_Binary_to_BCD.v was successful.
+# Compile of tb_Bowling_Game_Score_Keeping_System.v was successful.
+# 6 compiles, 0 failed with no errors.
+vsim -gui work.tb_Bowling_Game_Score_Keeping_System
+# vsim -gui work.tb_Bowling_Game_Score_Keeping_System 
+# Start time: 23:36:52 on Nov 24,2024
+# Loading work.tb_Bowling_Game_Score_Keeping_System
+# Loading work.Bowling_Game_Score_Keeping_System
+# Loading work.Controller
+# Loading work.APD_Logic
+# Loading work.Score_Register
+# Loading work.Frame_Counter
+# Loading work.Binary_to_BCD
+# Loading work.BCD_to_Seven_Segment
+add wave -position insertpoint sim:/tb_Bowling_Game_Score_Keeping_System/*
+add wave -position insertpoint sim:/tb_Bowling_Game_Score_Keeping_System/M1/*
+run -all
+# ** Note: $finish    : C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Bowling_Game_Score_Keeping_System.v(78)
+#    Time: 700 ps  Iteration: 0  Instance: /tb_Bowling_Game_Score_Keeping_System
+# 1
+# Break in Module tb_Bowling_Game_Score_Keeping_System at C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Bowling_Game_Score_Keeping_System.v line 78
+add wave -position insertpoint sim:/tb_Bowling_Game_Score_Keeping_System/M1/M8/*
+add wave -position insertpoint sim:/tb_Bowling_Game_Score_Keeping_System/M1/M7/*
+add wave -position insertpoint sim:/tb_Bowling_Game_Score_Keeping_System/M1/M6/*
+add wave -position insertpoint sim:/tb_Bowling_Game_Score_Keeping_System/*
+add wave -position insertpoint sim:/tb_Bowling_Game_Score_Keeping_System/M1/*
+# End time: 00:34:12 on Nov 25,2024, Elapsed time: 0:57:20
+# Errors: 0, Warnings: 5

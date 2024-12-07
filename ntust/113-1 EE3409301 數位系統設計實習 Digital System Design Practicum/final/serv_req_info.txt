@@ -1,0 +1,44 @@
+<internal_error>
+	<executable>quartus.exe</executable>
+	<sub_system>unknown</sub_system>
+	<file>unknown</file>
+	<line>0</line>
+	<callstack>
+	0x7863baa5: mfc90 + 0x5baa5
+	0x100062ac: GCL_AFC + 0x62ac (?OnWndMsg@AFC_NESTED_FRAME@@UAEHIIJPAJ@Z + 0x3c)
+	0x7863ba61: mfc90 + 0x5ba61
+	0x7863a655: mfc90 + 0x5a655
+	0x7863a8e1: mfc90 + 0x5a8e1
+	0x786385cc: mfc90 + 0x585cc
+	0x7e418733: USER32 + 0x8733 (GetDC + 0x6c)
+	0x7e418815: USER32 + 0x8815 (GetDC + 0x14e)
+	0x7e42927a: USER32 + 0x1927a (GetParent + 0x16b)
+	0x7e42f40a: USER32 + 0x1f40a (SendMessageA + 0x48)
+	0x00b9636b: GCL_CUI + 0x636b (?relay_mouse_message_to_view@CUI_TOOLTIP@@IAIXHVCPoint@@@Z + 0x4b)
+	0x7863ba61: mfc90 + 0x5ba61
+	0x7863a655: mfc90 + 0x5a655
+	0x7863a8e1: mfc90 + 0x5a8e1
+	0x786385cc: mfc90 + 0x585cc
+	0x7e418733: USER32 + 0x8733 (GetDC + 0x6c)
+	0x7e418815: USER32 + 0x8815 (GetDC + 0x14e)
+	0x7e42927a: USER32 + 0x1927a (GetParent + 0x16b)
+	0x7e42f40a: USER32 + 0x1f40a (SendMessageA + 0x48)
+	0x0a5c65ce: prj_ppl + 0x265ce (prj_ppl_dll_get_template_classes + 0xfdae)
+	0xffffffff857768c5:
+	0x05027862: TSM_STA + 0x2e7862 (?sta_is_legal_time_str@@YI_NPBD@Z + 0xd0902)
+	0xffffffffa4900004:
+	0xffffffff8cd00015:
+	0xffffffff94020015:
+	0x00011437:
+	0xffffffffc17dffff:
+	0x05b47e41: NETO_SUT + 0x17e41 (?get_atom_sdf_cells@SUT_DELAY_UTIL@@QAIXPAVCDB_ATOM_NODE@@PAVSUT_ATOM_SDF_CELLS@@W4TOOL_TYPE@1@_N@Z + 0x8171)
+	0xffffffffad8a0004:
+	</callstack>
+	<error>Current editor: RPW, STED</error>
+	<date>Mon Dec 02 14:20:47 2024</date>
+	<version>Quartus II Version 9.0 Build 132 02/25/2009 SJ Web Edition</version>
+	<full_error>Stack Overflow
+Current editor: RPW, STED
+Quartus II Version 9.0 Build 132 02/25/2009 SJ Web Edition </full_error>
+</internal_error>
+

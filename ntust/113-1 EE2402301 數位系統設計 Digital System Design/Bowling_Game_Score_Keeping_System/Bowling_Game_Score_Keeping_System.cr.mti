@@ -1,0 +1,47 @@
+C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Binary_to_BCD.v {1 {vlog -work work -stats=none C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Binary_to_BCD.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module tb_Binary_to_BCD
+
+Top level modules:
+	tb_Binary_to_BCD
+
+} {} {}} C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Bowling_Game_Score_Keeping_System.v {1 {vlog -work work -stats=none C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Bowling_Game_Score_Keeping_System.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module Bowling_Game_Score_Keeping_System
+-- Compiling module Controller
+-- Compiling module APD_Logic
+-- Compiling module Score_Register
+-- Compiling module Frame_Counter
+
+Top level modules:
+	Bowling_Game_Score_Keeping_System
+
+} {} {}} C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Bowling_Game_Score_Keeping_System.v {1 {vlog -work work -stats=none C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_Bowling_Game_Score_Keeping_System.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module tb_Bowling_Game_Score_Keeping_System
+
+Top level modules:
+	tb_Bowling_Game_Score_Keeping_System
+
+} {} {}} C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/BCD_to_Seven_Segment.v {1 {vlog -work work -stats=none C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/BCD_to_Seven_Segment.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module BCD_to_Seven_Segment
+
+Top level modules:
+	BCD_to_Seven_Segment
+
+} {} {}} C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_BCD_to_Seven_Segment.v {1 {vlog -work work -stats=none C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/tb_BCD_to_Seven_Segment.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module tb_BCD_to_Seven_Segment
+
+Top level modules:
+	tb_BCD_to_Seven_Segment
+
+} {} {}} C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Binary_to_BCD.v {1 {vlog -work work -stats=none C:/Users/hank/Programming/modelsim/Bowling_Game_Score_Keeping_System/Binary_to_BCD.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module Binary_to_BCD
+
+Top level modules:
+	Binary_to_BCD
+
+} {} {}}
