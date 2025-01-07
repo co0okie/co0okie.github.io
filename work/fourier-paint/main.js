@@ -35,10 +35,10 @@ function compare(x, y) {
  * @param {number[]} x length l
  * @param {number[]} y length l
  * @param {number[]} t length l
- * @param {number} n sample count
+ * @param {number} n interpolation count
  * @returns {[number[], number[]]} [xx, yy, tt]: length n
  */
-function sample(x, y, t, n) {
+function interpolateN(x, y, t, n) {
     const l = t.length;
     const xx = Array(n), yy = Array(n), tt = linspace(t[0], t[l - 1], n);
     let ti = 0, t1 = t[ti], t2 = t[ti + 1];
@@ -57,6 +57,7 @@ function sample(x, y, t, n) {
     }
     return [xx, yy, tt];
 }
+
 
 /**
  * y = x[0 ~ n - 2] + x[1 ~ n - 1]
@@ -171,6 +172,128 @@ function IFS(X, Y, n, T, t) {
     return [x, y, t];
 }
 
+/**
+ * https://stackoverflow.com/questions/60226845/reverse-bits-javascript
+ * 
+ * e.g. logn = 4 bits
+ * 0000 -> 0000
+ * 0001 -> 1000
+ * 0010 -> 0100
+ * 0011 -> 1100
+ * ...
+ * 
+ * @param {number} x - an integer
+ * @param {number} logn - bit length
+ * @returns {number} - reversed integer
+ */
+function rev(x, logn) {
+    x = ((x >> 1) & 0x55555555) | ((x & 0x55555555) << 1);
+    x = ((x >> 2) & 0x33333333) | ((x & 0x33333333) << 2);
+    x = ((x >> 4) & 0x0F0F0F0F) | ((x & 0x0F0F0F0F) << 4);
+    x = ((x >> 8) & 0x00FF00FF) | ((x & 0x00FF00FF) << 8);
+    x = (x >>> 16) | (x << 16);
+
+    return x >>> (32 - logn);
+}
+
+/**
+ * 
+ * @param {number[]} x - length n
+ * @param {number[]} y - length n
+ * @param {number} logn - n = 2^logn
+ * @returns {{x: number[], y: number[]}}
+ */
+function bitReverseCopy(x, y, logn) {
+    const n = 2 ** logn;
+    const out = {x: Array(n), y: Array(n)};
+    for (let i = 0; i < n; i++) {
+        out.x[i] = x[rev(i, logn)];
+        out.y[i] = y[rev(i, logn)];
+    }
+    return out;
+}
+
+/**
+ * complex multiplication
+ * z1 = x1 + jy1
+ * z2 = x2 + jy2
+ * @param {number} x1 
+ * @param {number} y1 
+ * @param {number} x2 
+ * @param {number} y2 
+ * @returns {[number, number]} - z = x + jy
+ */
+function multiply(x1, y1, x2, y2) {
+    return [x1 * x2 - y1 * y2, x1 * y2 + y1 * x2];
+}
+
+/**
+ * reference: https://en.wikipedia.org/wiki/Cooley–Tukey_FFT_algorithm#Data_reordering,_bit_reversal,_and_in-place_algorithms
+ * 
+ * j^2 = -1
+ * z = x + jy
+ * @param {number[]} x - length n
+ * @param {number[]} y - length n
+ * @param {1 | -1} sign - FFT: 1, IFFT: -1
+ * @returns {{X: number[], Y: number[]}} - Z = X + jY
+ */
+function __FFT(x, y, sign) {
+    const n = x.length;
+    if (n !== y.length) throw new Error('x and y must have the same length');
+    if (n === 0) return {X: [], Y: []};
+    const logn = Math.log2(n);
+    if (Number.isInteger(logn) === false) throw new Error('n must be a power of 2');
+    if (sign !== 1 && sign !== -1) throw new Error('sign must be 1 or -1');
+    
+    const {x: X, y: Y} = bitReverseCopy(x, y, logn);
+    for (let s = 1; s <= logn; s++) {
+        const m = 2 ** s;
+        // ωm = exp(−j2π/m)
+        const twoPI_m = sign * 2 * Math.PI / m;
+        for (let k = 0; k < n; k += m) {
+            for (let i = 0; i < m / 2; i++) {
+                // ω = ωm ** i = exp(−j2π/m) ** i = exp(−j2πi/m) = cos(2πi/m) - jsin(2πi/m)
+                const ωx = Math.cos(twoPI_m * i), ωy = -Math.sin(twoPI_m * i);
+                const [tx, ty] = multiply(ωx, ωy, X[k + i + m / 2], Y[k + i + m / 2]);
+                const ux = X[k + i], uy = Y[k + i];
+                X[k + i] = ux + tx;
+                Y[k + i] = uy + ty;
+                X[k + i + m / 2] = ux - tx;
+                Y[k + i + m / 2] = uy - ty;
+            }
+        }
+    }
+    
+    if (sign === -1) {
+        for (let i = 0; i < n; i++) {
+            X[i] /= n;
+            Y[i] /= n;
+        }
+    }
+    
+    return sign === 1 ? {X: X, Y: Y} : {x: X, y: Y};
+}
+
+/**
+ * z = x + jy
+ * @param {number[]} x - length n
+ * @param {number[]} y - length n
+ * @returns {{X: number[], Y: number[]}} - Z = X + jY
+ */
+function FFT(x, y) {
+    return __FFT(x, y, 1);
+}
+
+/**
+ * Z = X + jY
+ * @param {number[]} X - length n
+ * @param {number[]} Y - length n
+ * @returns {{x: number[], y: number[]}} - z = x + jy
+ */
+function IFFT(X, Y) {
+    return __FFT(X, Y, -1);
+}
+
 ////////// input function //////////
 
 /**
@@ -197,15 +320,21 @@ async function mouseLeftUp() {
     }
 }
 
+/**
+ * @param {(elapse: number) => void} animation 
+ * @returns {Promise<AbortController>}
+ */
 async function startAnimation(animation) {
-    const control = { stop: false };
+    const controller = new AbortController();
+    let stop = false;
+    controller.signal.addEventListener('abort', () => stop = true);
     const t_offset = await new Promise(r => requestAnimationFrame(r)) / 1000;
     requestAnimationFrame(function callback(now) {
-        if (control.stop) return;
+        if (stop) return;
         animation(now / 1000 - t_offset);
         requestAnimationFrame(callback);
     });
-    return control;
+    return controller;
 }
 
 function initCanvas() {
@@ -248,17 +377,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         await mouseLeftUp();
         document.removeEventListener('mousemove', onMouseMove);
         
-        const N = 2 * Math.round(50 * (t[t.length - 1] - t[0])); // f_max * T_0
-        const [sx, sy, st] = sample(x, y, t, N);
-        const [X, Y, n, T] = FS(sx, sy, st, range(-N/2, N/2));
+        // const N = 2 * Math.round(50 * (t[t.length - 1] - t[0])); // f_max * T_0
+        const N = 2 ** Math.ceil(Math.log2(t.length * 16));
+        const T0 = (t[t.length - 1] - t[0]) * N / (N - 1);
+        const f0 = N / T0;
+        const [sx, sy] = interpolateN(x, y, t, N);
+        // const [X, Y, n, T] = FS(sx, sy, st, range(-N/2, N/2));
+        const {X, Y} = FFT(sx, sy);
         /** @type {{x: number, y: number, t: number}[]} */
         const points = [];
         const animation = await startAnimation(elapse => {
-            const [[x], [y], [t]] = IFS(X, Y, n, T, [elapse]);
-            points.push({x: x, y: y, t: t});
-            points.splice(0, points.findIndex(({t}) => elapse - t <= T) - 1);
-            
             context.clearRect(-canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+            
+            let x = 0, y = 0;
+            const twoPI = Math.PI * 2;
+            const twoPIt_T0 = twoPI * Math.round(elapse * f0) / N;
+            context.lineWidth = 1;
+            context.globalAlpha = 0.5;
+            context.beginPath();
+            // N = 16, k = 0, 15, 1, 14, 2, 13, 3, 12, 4, 11, 5, 10, 6, 9, 7, 8
+            for (let k = 0, N_2 = N / 2; ; k = N - k - (k < N_2)) {
+                const r = Math.sqrt(X[k] * X[k] + Y[k] * Y[k]) / N;
+                const a = Math.atan2(Y[k], X[k]);
+                context.moveTo(x + r, y);
+                context.arc(x, y, r, 0, twoPI);
+                context.moveTo(x, y);
+                // 2πkn/N = 2πktf0/N = 2πt/T0 * k
+                const θ = a + twoPIt_T0 * k;
+                x += r * Math.cos(θ);
+                y += r * Math.sin(θ);
+                context.lineTo(x, y);
+                
+                if (k === N_2) break;
+            }
+            context.stroke();
+            
+            // const [[x], [y], [t]] = IFS(X, Y, N, T, [elapse]);
+            points.push({x: x, y: y, t: elapse});
+            points.splice(0, points.findIndex(({t}) => elapse - t <= T0) - 1);
+            
+            context.lineWidth = 3;
             for (let i = 1, l = points.length; i < l; i++) {
                 context.globalAlpha = 0.2 + 0.8 * i / l;
                 context.beginPath();
@@ -267,6 +425,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 context.stroke();
             }
         });
-        mouseLeftDown().then(() => animation.stop = true);
+        mouseLeftDown().then(() => animation.abort());
     }
 });
