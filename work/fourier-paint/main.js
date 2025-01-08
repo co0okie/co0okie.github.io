@@ -1,5 +1,9 @@
 'use strict'
 
+////////// constant //////////
+
+const PI2 = Math.PI * 2;
+
 ////////// pure function //////////
 
 /**
@@ -58,6 +62,21 @@ function interpolateN(x, y, t, n) {
     return [xx, yy, tt];
 }
 
+/**
+ * @param {number[]} x - length n
+ * @param {number[]} y - length n
+ * @returns {{r: number[], θ: number[]}}
+ */
+function cartesian2Polar(x, y) {
+    const n = x.length;
+    if (n !== y.length) throw new Error('x and y must have the same length');
+    const r = Array(n), θ = Array(n);
+    for (let i = 0; i < n; i++) {
+        r[i] = Math.sqrt(x[i] * x[i] + y[i] * y[i]);
+        θ[i] = Math.atan2(y[i], x[i]);
+    }
+    return {r: r, θ: θ};
+}
 
 /**
  * y = x[0 ~ n - 2] + x[1 ~ n - 1]
@@ -341,12 +360,27 @@ function initCanvas() {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
     context.translate(canvas.width / 2, canvas.height / 2);
-    context.lineWidth = 3;
     context.strokeStyle = '#fff';
+    context.lineCap = "butt";
 }
 
 const canvas = document.createElement('canvas');
 const context = canvas.getContext('2d');
+
+const config = {
+    trace: false,
+    zoom: 1,
+    speed: 1,
+    pause: false,
+    circleCount: 1,
+    reset: () => {
+        config.trace = false;
+        config.zoom = 1;
+        config.speed = 1;
+        config.pause = false;
+        config.circleCount = 1;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     document.body.append(canvas);
@@ -355,13 +389,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCanvas();
     
     window.addEventListener('resize', initCanvas);
+    
+    document.addEventListener('keydown', async e => {
+        switch (e.code) {
+            case 'KeyH':
+                const help = document.getElementById('help');
+                help.classList.toggle('hidden');
+                break;
+            case 'KeyT':
+                config.trace = !config.trace;
+                break;
+            case 'KeyW':
+                config.zoom *= 1.1;
+                break;
+            case 'KeyS':
+                config.zoom /= 1.1;
+                break;
+            case 'ArrowRight':
+                config.speed *= 1.1;
+                break;
+            case 'ArrowLeft':
+                config.speed /= 1.1;
+                break;
+            case 'ArrowUp':
+                config.circleCount += 1 / 16;
+                if (config.circleCount > 1) config.circleCount = 1;
+                break;
+            case 'ArrowDown':
+                config.circleCount -= 1 / 16;
+                if (config.circleCount < 0) config.circleCount = 0;
+                break;
+            case 'Space':
+                config.pause = !config.pause;
+                break;
+        }
+    });
         
     for (;;) {
         const e0 = await mouseLeftDown();
         const x = [e0.clientX - canvas.width / 2], y = [e0.clientY - canvas.height / 2], t = [0];
         let t_offset = performance.now() / 1000;
-        context.clearRect(-canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+        initCanvas();
+        config.reset();
         
+        context.lineWidth = 3;
+        context.globalAlpha = 1;
         /** @param {MouseEvent} e */
         function onMouseMove(e) {
             context.beginPath();
@@ -379,44 +451,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // const N = 2 * Math.round(50 * (t[t.length - 1] - t[0])); // f_max * T_0
         const N = 2 ** Math.ceil(Math.log2(t.length * 16));
+        console.log(N);
         const T0 = (t[t.length - 1] - t[0]) * N / (N - 1);
         const f0 = N / T0;
         const [sx, sy] = interpolateN(x, y, t, N);
         // const [X, Y, n, T] = FS(sx, sy, st, range(-N/2, N/2));
         const {X, Y} = FFT(sx, sy);
+        const {r: RN, θ: Θ} = cartesian2Polar(X, Y);
+        const R = RN.map(r => r / N);
         /** @type {{x: number, y: number, t: number}[]} */
         const points = [];
         const animation = await startAnimation(elapse => {
-            context.clearRect(-canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+            context.save();
+            context.resetTransform();
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.restore();
             
             let x = 0, y = 0;
-            const twoPI = Math.PI * 2;
-            const twoPIt_T0 = twoPI * Math.round(elapse * f0) / N;
-            context.lineWidth = 1;
-            context.globalAlpha = 0.5;
-            context.beginPath();
+            const PI2n_N = PI2 * Math.round(elapse * f0) / N; // n = round(t * f0)
+            const path = new Path2D();
             // N = 16, k = 0, 15, 1, 14, 2, 13, 3, 12, 4, 11, 5, 10, 6, 9, 7, 8
-            for (let k = 0, N_2 = N / 2; ; k = N - k - (k < N_2)) {
-                const r = Math.sqrt(X[k] * X[k] + Y[k] * Y[k]) / N;
-                const a = Math.atan2(Y[k], X[k]);
-                context.moveTo(x + r, y);
-                context.arc(x, y, r, 0, twoPI);
-                context.moveTo(x, y);
+            for (
+                let i = 0, k = 0, N_2 = N / 2, iEnd = N ** config.circleCount; 
+                i < iEnd; 
+                i++, k = N - k - (k < N_2)
+            ) {
+                const r = R[k];
+                const a = Θ[k];
+                path.moveTo(x + r, y);
+                path.arc(x, y, r, 0, PI2);
+                path.moveTo(x, y);
                 // 2πkn/N = 2πktf0/N = 2πt/T0 * k
-                const θ = a + twoPIt_T0 * k;
+                const θ = a + PI2n_N * k;
                 x += r * Math.cos(θ);
                 y += r * Math.sin(θ);
-                context.lineTo(x, y);
-                
-                if (k === N_2) break;
+                path.lineTo(x, y);
             }
-            context.stroke();
+            context.lineWidth = 0.5 / config.zoom;
+            context.globalAlpha = 0.5;
+            if (config.trace) {
+                context.setTransform(config.zoom, 0, 0, config.zoom, canvas.width / 2, canvas.height / 2);
+                context.transform(1, 0, 0, 1, -x, -y);
+            } else {
+                context.setTransform(1, 0, 0, 1, canvas.width / 2, canvas.height / 2);
+            }
+            context.beginPath();
+            context.stroke(path);
             
             // const [[x], [y], [t]] = IFS(X, Y, N, T, [elapse]);
             points.push({x: x, y: y, t: elapse});
             points.splice(0, points.findIndex(({t}) => elapse - t <= T0) - 1);
             
-            context.lineWidth = 3;
+            context.lineWidth = 3 / config.zoom;
             for (let i = 1, l = points.length; i < l; i++) {
                 context.globalAlpha = 0.2 + 0.8 * i / l;
                 context.beginPath();

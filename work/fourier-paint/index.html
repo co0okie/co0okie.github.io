@@ -13,12 +13,59 @@
       }
       body {
         margin: 0;
+        overflow: hidden;
         background-color: #000;
         font-family: Arial, Helvetica, sans-serif;
+      }
+      #help {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 10px 30px;
+        background-color: #333333dd;
+        color: #fff;
+        z-index: 1000;
+        border-radius: 7px;
+      }
+      .hidden {
+        display: none;
+      }
+      ul {
+        padding-inline-start: 1rem;
+        list-style-type: none;
+      }
+      li {
+        margin: 0.2rem;
+      }
+      span.keyboard {
+        display: inline-block;
+        width: 1.2rem;
+        height: 1.2rem;
+        border: 1px solid;
+        border-radius: 0.3rem;
+        text-align: center;
       }
     </style>
     <script src="./main.js"></script>
   </head>
   <body>
+    <div id="help">
+      <h1>Fourier Paint</h1>
+      <p>Click and drag to draw.</p>
+      <h2>Keyboard Control Option</h2>
+      <ul>
+        <li><span class="keyboard">H</span> hide/show this help</li>
+        <li><span class="keyboard">T</span> toggle tracing mode</li>
+        <ul>
+          <li><span class="keyboard">W</span> zoom in</li>
+          <li><span class="keyboard">S</span> zoom out</li>
+        </ul>
+        <!-- <li><span class="keyboard">←</span> slow down</li>
+        <li><span class="keyboard">→</span> speed up</li> -->
+        <li><span class="keyboard">↑</span> increase circle</li>
+        <li><span class="keyboard">↓</span> decrease circle</li>
+      </ul>
+    </div>
   </body>
 </html>
