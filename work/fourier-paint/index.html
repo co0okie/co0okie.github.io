@@ -39,6 +39,7 @@
         margin: 0.2rem;
       }
       span.keyboard {
+        font-family: monospace;
         display: inline-block;
         width: 1.2rem;
         height: 1.2rem;
@@ -47,7 +48,8 @@
         text-align: center;
       }
     </style>
-    <script src="./main.js"></script>
+    <script type="module" src="./AnimationController.js"></script>
+    <script type="module" src="./main.js"></script>
   </head>
   <body>
     <div id="help">
@@ -61,8 +63,9 @@
           <li><span class="keyboard">W</span> zoom in</li>
           <li><span class="keyboard">S</span> zoom out</li>
         </ul>
-        <!-- <li><span class="keyboard">←</span> slow down</li>
-        <li><span class="keyboard">→</span> speed up</li> -->
+        <li><span class="keyboard">␣</span> toggle pause/resume</li>
+        <li><span class="keyboard">←</span> slow down</li>
+        <li><span class="keyboard">→</span> speed up</li>
         <li><span class="keyboard">↑</span> increase circle</li>
         <li><span class="keyboard">↓</span> decrease circle</li>
       </ul>
