@@ -501,35 +501,40 @@ for (;;) {
         
         let x = 0, y = 0;
         const PI2n_N = PI2 * Math.round(elapse * f0) / N; // n = round(t * f0)
-        const path = new Path2D();
+        const circlePath = new Path2D();
+        const linePath = new Path2D();
+        linePath.moveTo(0, 0);
         // N = 16, k = 0, 15, 1, 14, 2, 13, 3, 12, 4, 11, 5, 10, 6, 9, 7, 8
         for (
-            let i = 0, k = 0, N_2 = N / 2, iEnd = N ** config.circleCount; 
+            let i = 0, k = 0, N_2 = N / 2, iEnd = (N / 16) ** config.circleCount;
             i < iEnd; 
             i++, k = N - k - (k < N_2)
         ) {
             const r = R[k];
             const a = Θ[k];
-            path.moveTo(x + r, y);
-            path.arc(x, y, r, 0, PI2);
-            path.moveTo(x, y);
+            circlePath.moveTo(x + r, y);
+            circlePath.arc(x, y, r, 0, PI2);
             // 2πkn/N = 2πktf0/N = 2πt/T0 * k
             const θ = a + PI2n_N * k;
             x += r * Math.cos(θ);
             y += r * Math.sin(θ);
-            path.lineTo(x, y);
+            linePath.lineTo(x, y);
         }
-        context.globalAlpha = 0.5;
+        
         if (config.trace) {
-            context.lineWidth = 0.5 / config.zoom;
+            context.lineWidth = 1 / config.zoom;
             context.setTransform(config.zoom, 0, 0, config.zoom, canvas.width / 2, canvas.height / 2);
             context.transform(1, 0, 0, 1, -x, -y);
         } else {
-            context.lineWidth = 0.5;
+            context.lineWidth = 1;
             context.setTransform(1, 0, 0, 1, canvas.width / 2, canvas.height / 2);
         }
+        context.globalAlpha = 0.3;
         context.beginPath();
-        context.stroke(path);
+        context.stroke(circlePath);
+        context.globalAlpha = 0.8;
+        context.beginPath();
+        context.stroke(linePath);
         
         points.push({x: x, y: y, t: elapse});
         points.splice(0, points.findIndex(({t}) => elapse - t <= T0) - 1);
