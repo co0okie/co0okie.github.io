@@ -9,13 +9,14 @@ const PI2 = Math.PI * 2;
 ////////// pure function //////////
 
 /**
+ * x in [a, b)
  * @param {number} a 
  * @param {number} b 
  * @param {number} n 
- * @returns 
+ * @returns {number[]}
  */
 function linspace(a, b, n) {
-    const x = Array(n), m = (b - a) / (n - 1);
+    const x = Array(n), m = (b - a) / n;
     for (let i = 0; i < n; i++) {
         x[i] = m * i + a;
     }
@@ -42,9 +43,9 @@ function compare(x, y) {
  * @param {number[]} y length l
  * @param {number[]} t length l
  * @param {number} n interpolation count
- * @returns {[number[], number[]]} [xx, yy, tt]: length n
+ * @returns {[number[], number[], number[]]} [xx, yy, tt]: length n
  */
-function interpolateN(x, y, t, n) {
+function linearInterpolateN(x, y, t, n) {
     const l = t.length;
     const xx = Array(n), yy = Array(n), tt = linspace(t[0], t[l - 1], n);
     let ti = 0, t1 = t[ti], t2 = t[ti + 1];
@@ -62,6 +63,67 @@ function interpolateN(x, y, t, n) {
         yy[i] = (tt[i] - t1) * my + y1;
     }
     return [xx, yy, tt];
+}
+
+/**
+ * 
+ * @param {number} t20 - t20 = t2 - t0
+ * @param {number} t21 - t21 = t2 - t1
+ * @param {number} t31 - t31 = t3 - t1
+ * @param {number[4]} p - length 4
+ * @returns {[a0, a1, a2, a3]} - p(t) = a0 + a1 * t + a2 * t**2 + a3 * t**3, 0 <= t <= t21
+ */
+function catmullRomCoef(t20, t21, t31, p) {
+    const [p0, p1, p2, p3] = p;
+    return [
+        p1,
+        -(p0 - p2)/t20,
+        (p1*t20*t21 - p3*t20*t21 + 2*p0*t21*t31 - 3*p1*t20*t31 + 3*p2*t20*t31 - 2*p2*t21*t31)/(t20*t21**2*t31),
+        -(p1*t20*t21 - p3*t20*t21 + p0*t21*t31 - 2*p1*t20*t31 + 2*p2*t20*t31 - p2*t21*t31)/(t20*t21**3*t31),
+    ]
+}
+
+/**
+ * Circular Catmull-Rom Spline Interpolation
+ * @param {number[]} xi length li
+ * @param {number[]} yi length li
+ * @param {number[]} ti length li
+ * @param {number} lo interpolation count (length output)
+ * @returns {[xo: number[], yo: number[], to: number[]]} [xo, yo, to]: length lo
+ */
+function catmullRomInterpolateN(x, y, t, lo) {
+    const li = t.length;
+    if (x.length !== li || y.length !== li) throw new Error('x, y, t must have the same length');
+    if (li === 0) throw new Error("x, y, t can't be empty");
+    for (let i = 1; i < li; i++) if (t[i - 1] >= t[i]) throw Error('t must be in ascending order')
+    if (li === 1) return [Array(lo).fill(x[0]), Array(lo).fill(y[0]), Array(lo).fill(t[0])];
+    
+    // p0, p1, ..., p-2, p-1, p0      , p1                , ...
+    // t0, t1, ..., t-2, t-1, t-1 + dt, t-1 + dt + t1 - t0, ...
+    const averageDeltaTime = (t[li - 1] - t[0]) / (li - 1);
+    const xi = [...x, x[0], x[1]];
+    const yi = [...y, y[0], y[1]];
+    const ti = [...t, t[li - 1] + averageDeltaTime, t[li - 1] + averageDeltaTime + t[1] - t[0]];
+    let t0 = ti[0] - averageDeltaTime, t1 = ti[0], t2 = ti[1], t3 = ti[2];
+    let x0 = xi[li - 1], x1 = xi[0], x2 = xi[1], x3 = xi[2];
+    let y0 = yi[li - 1], y1 = yi[0], y2 = yi[1], y3 = yi[2];
+    let [cx0, cx1, cx2, cx3] = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [x0, x1, x2, x3]);
+    let [cy0, cy1, cy2, cy3] = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [y0, y1, y2, y3]);
+    const xo = Array(lo), yo = Array(lo), to = linspace(ti[0], ti[li], lo);
+    for (let io = 0, ii = 0; io < lo; io++) {
+        if (to[io] > ti[ii + 1]) {
+            do { ii++ } while (to[io] > ti[ii + 1]);
+            t0 = t1, t1 = t2, t2 = t3, t3 = ti[ii + 2];
+            x0 = x1, x1 = x2, x2 = x3, x3 = xi[ii + 2];
+            y0 = y1, y1 = y2, y2 = y3, y3 = yi[ii + 2];
+            [cx0, cx1, cx2, cx3] = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [x0, x1, x2, x3]);
+            [cy0, cy1, cy2, cy3] = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [y0, y1, y2, y3]);
+        }
+        const t = to[io] - t1;
+        xo[io] = cx0 + cx1 * t + cx2 * t**2 + cx3 * t**3;
+        yo[io] = cy0 + cy1 * t + cy2 * t**2 + cy3 * t**3;
+    }
+    return [xo, yo, to];
 }
 
 /**
@@ -415,17 +477,17 @@ for (;;) {
         context.stroke();
         x.push(newX);
         y.push(newY);
-        t.push(performance.now() / 1000 - t_offset);
+        const newT = performance.now() / 1000 - t_offset;
+        t.push(newT === t[t.length - 1] ? newT + 2**-10 : newT);
     }
     document.addEventListener('mousemove', onMouseMove);
     await mouseLeftUp();
     document.removeEventListener('mousemove', onMouseMove);
     
     const N = 2 ** Math.ceil(Math.log2(t.length * 16));
-    console.log(N);
     const T0 = (t[t.length - 1] - t[0]) * N / (N - 1);
     const f0 = N / T0;
-    const [sx, sy] = interpolateN(x, y, t, N);
+    const [sx, sy] = catmullRomInterpolateN(x, y, t, N);
     const {X, Y} = FFT(sx, sy);
     const {r: RN, θ: Θ} = cartesian2Polar(X, Y);
     const R = RN.map(r => r / N);
