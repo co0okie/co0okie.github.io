@@ -9,12 +9,12 @@ export default class AnimationController {
         this.#elapse = 0;
         this.#prev = null;
         
-        const callback = async now => {
+        const callback = now => {
             if (this.#stopSignal) return;
-            if (!this.#pauseSignal && this.#prev !== null) 
+            if (!this.#pauseSignal && this.#prev !== null)
                 this.#elapse += this.#speed * (now - this.#prev);
             this.#prev = now;
-            animation(this.#elapse / 1000);
+            if (!this.#pauseSignal) animation(this.#elapse / 1000);
             requestAnimationFrame(callback);
         }
         requestAnimationFrame(callback);

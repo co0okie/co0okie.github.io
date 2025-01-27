@@ -519,12 +519,13 @@ for (;;) {
             y += r * Math.sin(θ);
             path.lineTo(x, y);
         }
-        context.lineWidth = 0.5 / config.zoom;
         context.globalAlpha = 0.5;
         if (config.trace) {
+            context.lineWidth = 0.5 / config.zoom;
             context.setTransform(config.zoom, 0, 0, config.zoom, canvas.width / 2, canvas.height / 2);
             context.transform(1, 0, 0, 1, -x, -y);
         } else {
+            context.lineWidth = 0.5;
             context.setTransform(1, 0, 0, 1, canvas.width / 2, canvas.height / 2);
         }
         context.beginPath();
@@ -533,7 +534,7 @@ for (;;) {
         points.push({x: x, y: y, t: elapse});
         points.splice(0, points.findIndex(({t}) => elapse - t <= T0) - 1);
         
-        context.lineWidth = 3 / config.zoom;
+        context.lineWidth = config.trace ? 3 / config.zoom : 3;
         for (let i = 1, l = points.length; i < l; i++) {
             context.globalAlpha = i / l;
             context.beginPath();
