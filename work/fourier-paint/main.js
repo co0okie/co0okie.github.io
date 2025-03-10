@@ -67,20 +67,24 @@ function linearInterpolateN(x, y, t, n) {
 
 /**
  * 
- * @param {number} t20 - t20 = t2 - t0
- * @param {number} t21 - t21 = t2 - t1
- * @param {number} t31 - t31 = t3 - t1
+ * @param {number} t20 - t2 - t0
+ * @param {number} t21 - t2 - t1
+ * @param {number} t31 - t3 - t1
  * @param {number[4]} p - length 4
- * @returns {[a0, a1, a2, a3]} - p(t) = a0 + a1 * t + a2 * t**2 + a3 * t**3, 0 <= t <= t21
+ * @returns {[a0, a1, a2, a3]} - p(t) = a0 + a1*t + a2*t² + a3*t³, 0 <= t <= t21
  */
-function catmullRomCoef(t20, t21, t31, p) {
-    const [p0, p1, p2, p3] = p;
+function catmullRomCoef(t20, t21, t31, [p0, p1, p2, p3]) {
+    const t21Square = t21 * t21;
+    const denominatorA2 = t20 * t21Square * t31;
+    const denominatorA3 = denominatorA2 * t21;
+    const common = t20 * t21 * (p1 - p3);
+    
     return [
         p1,
-        -(p0 - p2)/t20,
-        (p1*t20*t21 - p3*t20*t21 + 2*p0*t21*t31 - 3*p1*t20*t31 + 3*p2*t20*t31 - 2*p2*t21*t31)/(t20*t21**2*t31),
-        -(p1*t20*t21 - p3*t20*t21 + p0*t21*t31 - 2*p1*t20*t31 + 2*p2*t20*t31 - p2*t21*t31)/(t20*t21**3*t31),
-    ]
+        (p2 - p0) / t20,
+        (common + 2*t21*t31*(p0 - p2) + 3*t20*t31*(p2 - p1)) / denominatorA2,
+        -(common + t21*t31*(p0 - p2) + 2*t20*t31*(p2 - p1)) / denominatorA3
+    ];
 }
 
 /**
@@ -93,35 +97,36 @@ function catmullRomCoef(t20, t21, t31, p) {
  */
 function catmullRomInterpolateN(x, y, t, lo) {
     const li = t.length;
-    if (x.length !== li || y.length !== li) throw new Error('x, y, t must have the same length');
-    if (li === 0) throw new Error("x, y, t can't be empty");
-    for (let i = 1; i < li; i++) if (t[i - 1] >= t[i]) throw Error('t must be in ascending order')
+    if (x.length !== li || y.length !== li) throw new Error('x/y/t length mismatch');
+    if (li === 0) throw new Error("Empty input");
+    for (let i = 1; i < li; i++) if (t[i - 1] >= t[i]) throw Error('Non-ascending t')
     if (li === 1) return [Array(lo).fill(x[0]), Array(lo).fill(y[0]), Array(lo).fill(t[0])];
     
     // p0, p1, ..., p-2, p-1, p0      , p1                , ...
     // t0, t1, ..., t-2, t-1, t-1 + dt, t-1 + dt + t1 - t0, ...
-    const averageDeltaTime = (t[li - 1] - t[0]) / (li - 1);
+    const averageDeltaT = (t[li - 1] - t[0]) / (li - 1);
     const xi = [...x, x[0], x[1]];
     const yi = [...y, y[0], y[1]];
-    const ti = [...t, t[li - 1] + averageDeltaTime, t[li - 1] + averageDeltaTime + t[1] - t[0]];
-    let t0 = ti[0] - averageDeltaTime, t1 = ti[0], t2 = ti[1], t3 = ti[2];
-    let x0 = xi[li - 1], x1 = xi[0], x2 = xi[1], x3 = xi[2];
-    let y0 = yi[li - 1], y1 = yi[0], y2 = yi[1], y3 = yi[2];
-    let [cx0, cx1, cx2, cx3] = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [x0, x1, x2, x3]);
-    let [cy0, cy1, cy2, cy3] = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [y0, y1, y2, y3]);
+    const ti = [...t, t[li - 1] + averageDeltaT, t[li - 1] + averageDeltaT + t[1] - t[0]];
+    let [t0, t1, t2, t3] = [ti[0] - averageDeltaT, ti[0], ti[1], ti[2]];
+    let [x0, x1, x2, x3] = [xi[li - 1], xi[0], xi[1], xi[2]];
+    let [y0, y1, y2, y3] = [yi[li - 1], yi[0], yi[1], yi[2]];
+    let cx = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [x0, x1, x2, x3]);
+    let cy = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [y0, y1, y2, y3]);
     const xo = Array(lo), yo = Array(lo), to = linspace(ti[0], ti[li], lo);
     for (let io = 0, ii = 0; io < lo; io++) {
-        if (to[io] > ti[ii + 1]) {
-            do { ii++ } while (to[io] > ti[ii + 1]);
-            t0 = t1, t1 = t2, t2 = t3, t3 = ti[ii + 2];
-            x0 = x1, x1 = x2, x2 = x3, x3 = xi[ii + 2];
-            y0 = y1, y1 = y2, y2 = y3, y3 = yi[ii + 2];
-            [cx0, cx1, cx2, cx3] = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [x0, x1, x2, x3]);
-            [cy0, cy1, cy2, cy3] = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [y0, y1, y2, y3]);
+        while (to[io] > ti[ii + 1]) {
+            ii++;
+            if (to[io] > ti[ii + 1]) continue;
+            [t0, t1, t2, t3] = [t1, t2, t3, ti[ii + 2]];
+            [x0, x1, x2, x3] = [x1, x2, x3, xi[ii + 2]];
+            [y0, y1, y2, y3] = [y1, y2, y3, yi[ii + 2]];
+            cx = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [x0, x1, x2, x3]);
+            cy = catmullRomCoef(t2 - t0, t2 - t1, t3 - t1, [y0, y1, y2, y3]);
         }
         const t = to[io] - t1;
-        xo[io] = cx0 + cx1 * t + cx2 * t**2 + cx3 * t**3;
-        yo[io] = cy0 + cy1 * t + cy2 * t**2 + cy3 * t**3;
+        xo[io] = cx[0] + t * (cx[1] + t * (cx[2] + t * cx[3]));
+        yo[io] = cy[0] + t * (cy[1] + t * (cy[2] + t * cy[3]));
     }
     return [xo, yo, to];
 }
