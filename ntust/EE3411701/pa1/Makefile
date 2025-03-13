@@ -6,7 +6,7 @@ OBJECTS = $(SOURCES:.cpp=.o)
 EXECUTABLE = genPlot
 OUTPUT_GP = output.gp
 INPUT_DEF = CS12x12.def
-GNUPLOT = $(shell which gnuplot)
+GNUPLOT = gnuplot
 
 all: $(EXECUTABLE)
 
@@ -23,4 +23,7 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) -std=c++11 -O3 -c $< -o $@
 
 clean:
+	rm -rf $(OBJECTS) $(EXECUTABLE)
+
+clean-plot:
 	rm -rf $(OBJECTS) $(EXECUTABLE) output.gp output.png
