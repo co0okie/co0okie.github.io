@@ -1,0 +1,4 @@
+genPlot
+*.o
+*.gp
+*.png
