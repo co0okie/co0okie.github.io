@@ -34,9 +34,5 @@ int main(int argc, char* argv[]) {
     outputFile << DesignExchangeFormat{input.str()}.toGnuPlot(msbcsWidth, msbcsHeight).rdbuf();
     outputFile.close();
 
-    // // auto def = DesignExchangeFormat::parse(buffer.str());
-    // outputFile << def2gp(msbcsWidth, msbcsHeight, def).rdbuf();
-    // outputFile.close();
-
     return 0;
 }

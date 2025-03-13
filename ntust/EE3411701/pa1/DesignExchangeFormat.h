@@ -40,30 +40,9 @@ public:
     DesignExchangeFormat(const std::string& def);
 
     std::stringstream toGnuPlot(const int& msbcsWidth, const int& msbcsHeight) const;
-    // Design parse();
-    // static Design parse(const std::string& s);
 
 private:
-    // const std::string str;
-    // size_t pos;
-    // char ch;
-
     void parseDef(const std::string& def);
-
-    // Diearea parseDiearea();
-    // std::vector<Component> parseComponents();
-    // Component parseComponent();
-    // std::vector<Specialnet> parseSpecialnets();
-    // Specialnet parseSpecialnet();
-    // Point parsePoint();
-    // TwoPoints parseTwoPoints();
-    // int parseInt();
-    // void nextChar();
-    // bool eat(const char& c);
-    // std::string parseWord();
-    // std::string parseWord(const std::string& word);
-    // bool eatWord(const std::string& word);
-    // void eatSpace();
 };
 
 #endif
