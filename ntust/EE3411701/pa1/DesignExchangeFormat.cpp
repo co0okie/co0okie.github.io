@@ -109,13 +109,13 @@ void DesignExchangeFormat::parseDef(const std::string& def) {
         return p;
     };
 
-    auto parseDiearea = [&]() {
+    auto parseDiearea = [&]() -> Diearea {
         Point p1 = parsePoint(), p2 = parsePoint();
-        design.diearea = Diearea { p1.x, p1.y, p2.x, p2.y };
         eatChar(';');
+        return { p1.x, p1.y, p2.x, p2.y };
     };
 
-    auto parseComponent = [&]() {
+    auto parseComponent = [&]() -> Component {
         Component component;
         component.label = parseWord();
         parseWord();
@@ -125,21 +125,22 @@ void DesignExchangeFormat::parseDef(const std::string& def) {
         component.x = p.x; component.y = p.y;
         parseWord();
         eatChar(';');
-        design.components.push_back(component);
+        return component;
     };
 
-    auto parseComponents = [&]() {
-        parseInt(); 
+    auto parseComponents = [&]() -> std::vector<Component> {
+        std::vector<Component> components{(size_t) parseInt()};
         eatChar(';');
         for (;;) {
             if (!eatChar('-')) break;
-            parseComponent();
+            components.push_back(parseComponent());
         }
         parseString("END"); 
         parseString("COMPONENTS");
+        return components;
     };
 
-    auto parseSpecialnet = [&]() {
+    auto parseSpecialnet = [&]() -> Specialnet {
         Specialnet specialnet;
         specialnet.label = parseWord();
         parseChar('+');
@@ -150,29 +151,30 @@ void DesignExchangeFormat::parseDef(const std::string& def) {
         specialnet.x1 = p.x1; specialnet.y1 = p.y1;
         specialnet.x2 = p.x2; specialnet.y2 = p.y2;
         eatChar(';');
-        design.specialnets.push_back(specialnet);
+        return specialnet;
     };
 
     auto parseSpecialnets = [&]() {
-        parseInt();
+        std::vector<Specialnet> specialnets{(size_t) parseInt()};
         eatChar(';');
         for (;;) {
             if (!eatChar('-')) break;
-            parseSpecialnet();
+            specialnets.push_back(parseSpecialnet());
         }
         parseString("END");
         parseString("SPECIALNETS");
+        return specialnets;
     };
     
     nextChar();
     eatSpace();
     while (pos < def.length()) {
         if (eatString("DIEAREA")) {
-            parseDiearea();
+            design.diearea = parseDiearea();
         } else if (eatString("COMPONENTS")) {
-            parseComponents();
+            design.components = parseComponents();
         } else if (eatString("SPECIALNETS")) {
-            parseSpecialnets();
+            design.specialnets = parseSpecialnets();
         } else {
             parseWord();
         }
@@ -232,8 +234,6 @@ std::stringstream DesignExchangeFormat::toGnuPlot(const int& msbcsWidth, const i
     }
     gp << "\n";
 
-    // gp << "set xtics 1000\n";
-    // gp << "set ytics 1000\n";
     const auto& d = design.diearea;
     gp << "plot [" << d.x1 << ":" << d.x2 << "][" << d.y1 << ":" << d.y2 << "]0\n";
     gp << "set terminal png size " << (d.x2 - d.x1) / 32 << "," << (d.y2 - d.y1) / 32 << "\n";
