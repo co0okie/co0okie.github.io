@@ -1,0 +1,6 @@
+*.pdf
+*.png
+*.gp
+*.o
+legalizer
+output.def
