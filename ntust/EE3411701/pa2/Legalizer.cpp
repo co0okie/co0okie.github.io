@@ -1,10 +1,11 @@
-#include "Constant.h"
 #include "Legalizer.h"
 #include <algorithm>
 #include <list>
 #include <limits>
-#include <memory>
 #include <cmath>
+#include <iostream>
+
+#define DEBUG 0
 
 struct Cluster;
 
@@ -16,10 +17,9 @@ struct Row {
     Row() {}
     Row(const DEF::Row* row) : row(row), width(row->countX * row->stepX) {}
 
-    // return cost
-    double placeCell(DEF::Component *const& component, const double& validX1);
+    bool directlyPlace(Cluster&& cluster);
 
-    double estimateCost(const DEF::Component& component) const;
+    double validateLastCluster();
 };
 
 struct Cluster {
@@ -28,7 +28,7 @@ struct Cluster {
     const Row* row;
 
     Cluster(const Row& row);
-    Cluster(DEF::Component* const &component, const double& validX1, const Row& row);
+    Cluster(DEF::Component* const &component, const Row& row);
 
     void update();
     void addCell(DEF::Component* const &component);
@@ -37,7 +37,7 @@ struct Cluster {
 
 double cellWidth;
 
-double cost(const DEF::Component& component, const double& x, const double& y) {
+double getCost(const DEF::Component& component, const double& x, const double& y) {
     return std::abs(x - component.x) + std::abs(y - component.y);
 }
 
@@ -54,43 +54,34 @@ double validateX(const double& ax1, const double& ax2, const double& bx1, const 
     }
 }
 
-// return cost
-double Row::placeCell(DEF::Component *const& component, const double& validX1) {
-    if (DEBUG > 2) std::cout << "    placing cell" << std::endl;
-    if (clusters.empty() || clusters.back().x2 <= validX1) {
-        if (cellWidth > width) return std::numeric_limits<double>::infinity();
-        if (DEBUG > 2) std::cout << "    creating cluster: ";
-        clusters.emplace_back(Cluster{component, validX1, *this});
-        if (DEBUG > 2) std::cout << "[" << clusters.back().x1 << ", " << clusters.back().x2 << "]" << std::endl;
-        return cost(*component, clusters.back().x1, row->y);
-    } else {
-        if (DEBUG > 2) std::cout << "    adding cell to cluster: [" << clusters.back().x1 << ", " << clusters.back().x2 << "]" << std::endl;
-        if (clusters.back().x2 - clusters.back().x1 + cellWidth > width) return std::numeric_limits<double>::infinity();
-        clusters.back().addCell(component);
-        if (DEBUG > 2) std::cout << "    cluster's new position: [" << clusters.back().x1 << ", " << clusters.back().x2 << "]" << std::endl;
-        auto it = --clusters.end();
-        while (clusters.size() >= 2 && clusters.back().x1 < (--it)->x2) {
-            if (DEBUG > 2) std::cout << "    cluster overlap with [" << it->x1 << ", " << it->x2 << "], combining..." << std::endl;
-            if (it->x2 - it->x1 + clusters.back().x2 - clusters.back().x1 > width) return std::numeric_limits<double>::infinity();
-            it->combineCluster(std::move(clusters.back()));
-            clusters.pop_back();
-            if (DEBUG > 2) std::cout << "    combine complete, new cluster position: [" << it->x1 << ", " << it->x2 << "]" << std::endl;
-        }
-        return cost(*component, clusters.back().x2 - cellWidth, row->y);
-    }
+// placing cluster directly, return false if overlap, true if not
+bool Row::directlyPlace(Cluster&& cluster) {
+    const auto& x2 = clusters.back().x2;
+    clusters.emplace_back(std::move(cluster));
+    return x2 <= clusters.back().x1;
 }
 
-double Row::estimateCost(const DEF::Component& component) const {
-    double x = validateX(component.x, component.x + cellWidth, row->x, row->stepX, row->x + width);
-    return cost(component, x, row->y);
+double Row::validateLastCluster() {
+    auto it = --clusters.end();
+    while (clusters.size() >= 2 && clusters.back().x1 < (--it)->x2) {
+        if (DEBUG > 2) std::cout << "    cluster overlap with [" << it->x1 << ", " << it->x2 << "], combining..." << std::endl;
+        if (it->x2 - it->x1 + clusters.back().x2 - clusters.back().x1 > width) {
+            if (DEBUG > 2) std::cout << "    insufficient row width" << std::endl;
+            return std::numeric_limits<double>::infinity();
+        }
+        it->combineCluster(std::move(clusters.back()));
+        clusters.pop_back();
+        if (DEBUG > 2) std::cout << "    combine complete, new cluster position: [" << it->x1 << ", " << it->x2 << "]" << std::endl;
+    }
+    return getCost(*clusters.back().cells.back(), clusters.back().x2 - cellWidth, row->y);
 }
 
 Cluster::Cluster(const Row& row) : sumX(0), row(&row) {}
 
-Cluster::Cluster(DEF::Component* const &component, const double& validX1, const Row& row) : sumX(0), row(&row) {
+Cluster::Cluster(DEF::Component* const &component, const Row& row) : sumX(0), row(&row) {
     cells.push_back(component);
     sumX += component->x;
-    x1 = validX1;
+    x1 = validateX(component->x, component->x + cellWidth, row.row->x, row.row->stepX, row.row->x + row.width);
     x2 = x1 + cellWidth;
 }
 
@@ -179,33 +170,48 @@ void Legalizer::legalize(DEF& def, const double& width) {
 
         for (RowIterator ri{(cell->y - rows.front().row->y) / rowHeight, (int) rows.size() - 1}; !ri.end(); ++ri) {
             const auto& row = rows[*ri];
-            if (DEBUG > 1) std::cout << "  trying row " << *ri << ", row.y: " << row.row->y << std::endl;
+            if (DEBUG > 1) {
+                std::cout << "  trying row " << *ri << ", row.y: " << row.row->y << ", clusters:";
+                for (const auto& c : row.clusters) std::cout << " [" << c.x1 << ", " << c.x2 << "]";
+                std::cout << std::endl;
+            }
 
-            // assuming row is empty, try placing to get a estimateCost
-            // estimateCost will only increase row by row
-            const auto validX1 = validateX(cell->x, cell->x + cellWidth, row.row->x, row.row->stepX, row.row->x + row.width);
-            const auto estimateCost = cost(*cell, validX1, row.row->y);
-            if (DEBUG > 2) std::cout << "    estimate cost: " << estimateCost << std::endl;
-            if (estimateCost >= minCost) {
-                if (DEBUG > 2) std::cout << "    minCost found: " << minCost << std::endl;
-                break;
+            if (cellWidth > row.width || (!row.clusters.empty() && (row.clusters.back().x2 - row.clusters.back().x1 + cellWidth > row.width))) {
+                if (DEBUG > 2) std::cout << "    insufficient row width" << std::endl;
+                continue;
             }
 
             auto newRow = Row{row};
-            const auto cost = newRow.placeCell(cell, validX1);
+            if (DEBUG > 2) std::cout << "    creating cluster: ";
+            Cluster cluster{cell, newRow};
+            if (DEBUG > 2) std::cout << "[" << cluster.x1 << ", " << cluster.x2 << "]" << std::endl;
+            const auto estimateCost = getCost(*cell, cluster.x1, newRow.row->y);
+            if (DEBUG > 2) std::cout << "    estimate cost: " << estimateCost << std::endl;
+            // minCost <= estimateCost < infinity: minCost (previous row) is the best solution
+            if (estimateCost > minCost) {
+                if (DEBUG > 2) std::cout << "    minimum cost found: " << minCost << std::endl;
+                break;
+            }
+            // estimateCost <= minCost && valid placement: this is the best solution
+            else if (newRow.directlyPlace(std::move(cluster))) {
+                minCost = estimateCost;
+                bestRow = std::move(newRow);
+                bestRowI = *ri;
+                if (DEBUG > 2) std::cout << "    minimum cost found: " << minCost << std::endl;
+                break;
+            }
+
+            // overlap, appending to last cluster
+            const auto cost = newRow.validateLastCluster();
             if (DEBUG > 2) std::cout << "    cost: " << cost << std::endl;
             if (cost < minCost) {
                 minCost = cost;
                 bestRow = std::move(newRow);
                 bestRowI = *ri;
             }
-            if (estimateCost == cost) {
-                if (DEBUG > 2) std::cout << "    minCost found: " << minCost << std::endl;
-                break;
-            }
         }
         if (minCost == std::numeric_limits<double>::infinity()) {
-            std::cerr << "no space to place cell: " << cell->name << " (" << cell->x << ", " << cell->y << "), exiting..." << std::endl;
+            std::cerr << "no space to place cell: " << cell->name << " (" << cell->x << ", " << cell->y << "), exiting ..." << std::endl;
             exit(1);
         }
         rows[bestRowI] = std::move(bestRow);

@@ -8,7 +8,7 @@ OUTPUT_GP = output.gp
 OUTPUT_PNG = output.png
 OUTPUT_DEF = output.def
 # INPUT_DEF = case4.def
-INPUT_DEF = super2.def
+INPUT_DEF = super1.def
 GNUPLOT = gnuplot
 
 $(EXECUTABLE): $(OBJECTS)
@@ -18,14 +18,21 @@ all: $(EXECUTABLE)
 
 png: $(OUTPUT_PNG)
 
+tgz: $(SOURCES) $(wildcard *.h) makefile readme.txt report.docx
+	temp_dir=$$(mktemp -d); \
+	mkdir "$$temp_dir"/b11107051-p2; \
+	cp *.cpp *.h makefile readme.txt report.docx "$$temp_dir"/b11107051-p2; \
+	tar zcvf b11107051-p2.tgz -C "$$temp_dir" b11107051-p2; \
+	rm -rf "$$temp_dir"
+
 $(OUTPUT_PNG): $(OUTPUT_GP)
 	$(GNUPLOT) $(OUTPUT_GP)
 
 $(OUTPUT_GP) $(OUTPUT_DEF) run: $(EXECUTABLE) makefile
-	./$(EXECUTABLE) 3 0.5 $(INPUT_DEF) $(OUTPUT_DEF)
+	./$(EXECUTABLE) 4 0.5 $(INPUT_DEF) $(OUTPUT_DEF)
 
 %.o: %.cpp
 	$(CC) -std=c++11 -O3 -g -c $< -o $@
 
 clean:
-	rm -rf $(OBJECTS) $(EXECUTABLE) output.gp output.png output.def
+	rm -rf *.o $(EXECUTABLE) output.gp output.png output.def b11107051*.tgz

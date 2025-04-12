@@ -1,9 +1,10 @@
-#ifndef DESIGN_EXCHANGE_FORMAT_H
-#define DESIGN_EXCHANGE_FORMAT_H
+#ifndef DEF_H
+#define DEF_H
 
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include "Legalizer.h"
 
 enum class Orientation { N, S, W, E, FN, FS, FW, FE };
 
@@ -72,7 +73,7 @@ public:
 
     static DEF fromDefFile(const std::string& filename);
 
-    void legalize(const double& cellWidth) { Legalizer::legalize(*this, cellWidth); }
+    void legalize(const double& cellWidth);
 
 private:
     template <class T> T toGnuPlot(T&& stream, const double& msbcsWidth, const double& msbcsHeight = 0) const;

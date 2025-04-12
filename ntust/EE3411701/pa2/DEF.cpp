@@ -6,8 +6,9 @@
 #include <sstream>
 #include <algorithm>
 #include <fstream>
-#include "Constant.h"
-#include "Legalizer.h"
+#include <iostream>
+
+#define DEBUG 0
 
 class DEFParser {
 public:
@@ -459,40 +460,40 @@ std::string orientation2String(const Orientation& orientation) {
 void DEF::toDefFile(const std::string& filename) const {
     std::ofstream def{filename};
 
-    def << "VERSION " << version << " ;" << std::endl;
-    def << "DIVIDERCHAR \"" << dividerChar << "\" ;" << std::endl;
-    def << "BUSBITCHARS \"" << busBitChars << "\" ;" << std::endl;
+    def << "VERSION " << version << " ;\n";
+    def << "DIVIDERCHAR \"" << dividerChar << "\" ;\n";
+    def << "BUSBITCHARS \"" << busBitChars << "\" ;\n";
 
-    def << "DESIGN " << design.name << " ;" << std::endl;
-    def << "UNITS DISTANCE MICRONS " << design.units << " ;" << std::endl;
+    def << "DESIGN " << design.name << " ;\n";
+    def << "UNITS DISTANCE MICRONS " << design.units << " ;\n";
     def << std::endl;
     def << "DIEAREA ( " << design.diearea.x1 << " " << design.diearea.y1 << " ) ( " 
-        << design.diearea.x2 << " " << design.diearea.y2 << " ) ;" << std::endl;
+        << design.diearea.x2 << " " << design.diearea.y2 << " ) ;\n";
     def << std::endl;
 
     for (const auto& row : design.rows) {
         def << "ROW " << row.name << " " << row.siteName << " " 
             << row.x << " " << row.y << " " << orientation2String(row.orientation) 
             << " DO " << row.countX << " BY " << row.countY 
-            << " STEP " << row.stepX << " " << row.stepY << " ;" << std::endl;
+            << " STEP " << row.stepX << " " << row.stepY << " ;\n";
     }
     def << std::endl;
 
     if (design.components.size()) {
-        def << "COMPONENTS " << design.components.size() << " ;" << std::endl;
+        def << "COMPONENTS " << design.components.size() << " ;\n";
         for (const auto& component : design.components) {
             def << "- " << component.name << " " << component.modelName 
                 << " + PLACED ( " << component.x << " " << component.y << " ) " 
-                << orientation2String(component.orientation) << " ;" << std::endl;
+                << orientation2String(component.orientation) << " ;\n";
         }
-        def << "END COMPONENTS" << std::endl << std::endl;
+        def << "END COMPONENTS\n" << std::endl;
     }
 
     if (design.specialnets.size()) {
         // I will complete this in the future
     }
 
-    def << "END DESIGN" << std::endl;
+    def << "END DESIGN\n";
 
     if (DEBUG) std::cout << "toDef: " << filename << std::endl;
 }
@@ -504,3 +505,5 @@ DEF DEF::fromDefFile(const std::string& filename) {
     def.close();
     return DEF{ss.str()};
 }
+
+void DEF::legalize(const double& cellWidth) { Legalizer::legalize(*this, cellWidth); }
