@@ -500,6 +500,9 @@ void DEF::toDefFile(const std::string& filename) const {
 
 DEF DEF::fromDefFile(const std::string& filename) {
     std::ifstream def{filename};
+    if(def.fail()){
+        throw std::runtime_error("failed to open file: " + filename);
+    }
     std::stringstream ss;
     ss << def.rdbuf();
     def.close();
