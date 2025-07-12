@@ -1,5 +1,3 @@
-'use strict'
-
 import AnimationController from "./AnimationController.js";
 
 ////////// constant //////////
@@ -74,8 +72,7 @@ function linearInterpolateN(x, y, t, n) {
  * @returns {[a0, a1, a2, a3]} - p(t) = a0 + a1*t + a2*t² + a3*t³, 0 <= t <= t21
  */
 function catmullRomCoef(t20, t21, t31, [p0, p1, p2, p3]) {
-    const t21Square = t21 * t21;
-    const denominatorA2 = t20 * t21Square * t31;
+    const denominatorA2 = t20 * t21 * t21 * t31;
     const denominatorA3 = denominatorA2 * t21;
     const common = t20 * t21 * (p1 - p3);
     
@@ -207,15 +204,15 @@ function integral(x, y) {
  * @param {number[]} x length nt
  * @param {number[]} y length nt
  * @param {number[]} t length nt
- * @param {number[]} n length nn
- * @returns {[number[], number[], number[], number[]]} [X, Y, n, T]: Z[n] = X[n] + jY[n], f = n / T
+ * @param {number[]} k length nk
+ * @returns {[number[], number[], number[], number[]]} [X, Y, k, T]: Z[k] = X[k] + jY[k], f = k / T
  */
-function FS(x, y, t, n) {
-  const nt = t.length, nn = n.length, T = t[nt - 1] - t[0], f = 1 / T;
+function FS(x, y, t, k) {
+  const nt = t.length, nk = k.length, T = t[nt - 1] - t[0], f = 1 / T;
   const p2f = Math.PI * 2 * f;
-  const X = Array(nn).fill(0), Y = Array(nn).fill(0);
-  for (let ni = 0; ni < nn; ni++) {
-    const p2fn = p2f * n[ni];
+  const X = Array(nk).fill(0), Y = Array(nk).fill(0);
+  for (let ki = 0; ki < nk; ki++) {
+    const p2fn = p2f * k[ki];
     const X_ = Array(nt), Y_ = Array(nt);
     for (let ti = 0; ti < nt; ti++) {
         const p2fnt = p2fn * t[ti];
@@ -224,11 +221,11 @@ function FS(x, y, t, n) {
         X_[ti] = x[ti] * cp2fnt + y[ti] * sp2fnt;
         Y_[ti] = y[ti] * cp2fnt - x[ti] * sp2fnt;
     }
-    X[ni] = integral(t, X_) / T;
-    Y[ni] = integral(t, Y_) / T;
+    X[ki] = integral(t, X_) / T;
+    Y[ki] = integral(t, Y_) / T;
   }
   
-  return [X, Y, n, T];
+  return [X, Y, k, T];
 }
 
 /**
@@ -463,42 +460,47 @@ document.addEventListener('keydown', async e => {
             break;
     }
 });
-    
-for (;;) {
-    const e0 = await mouseLeftDown();
-    const x = [e0.clientX - canvas.width / 2], y = [e0.clientY - canvas.height / 2], t = [0];
-    let t_offset = performance.now() / 1000;
+
+function client2Canvas(x, y) {
+    return {x: x - canvas.width / 2, y: y - canvas.height / 2};
+}
+
+document.addEventListener('mypointerdown', (
+    /** @type {{detail: {t: number, x: number, y: number}}} */
+    { detail: {t, x, y} }
+) => {
     initCanvas();
     config.reset();
-    
     context.lineWidth = 3;
     context.globalAlpha = 1;
-    /** @param {MouseEvent} e */
-    function onMouseMove(e) {
-        context.beginPath();
-        context.moveTo(x[x.length - 1], y[y.length - 1]);
-        const newX = e.clientX - canvas.width / 2, newY = e.clientY - canvas.height / 2;
-        context.lineTo(newX, newY);
-        context.stroke();
-        x.push(newX);
-        y.push(newY);
-        const newT = performance.now() / 1000 - t_offset;
-        t.push(newT === t[t.length - 1] ? newT + 2**-10 : newT);
-    }
-    document.addEventListener('mousemove', onMouseMove);
-    await mouseLeftUp();
-    document.removeEventListener('mousemove', onMouseMove);
-    
+    context.beginPath();
+    context.moveTo(x, y);
+})
+
+document.addEventListener('mypointermove', (
+    /** @type {{detail: {t: number, x: number, y: number}}} */
+    { detail: {t, x, y} }
+) => {
+    context.lineTo(x, y);
+    context.stroke();
+})
+
+document.addEventListener('mypointerup', (
+    /** @type {{detail: {t: number, x: number, y: number}[]}} */
+    { detail: oldPoints }
+) => {
+    const x = oldPoints.map(({x}) => x), y = oldPoints.map(({y}) => y), t = oldPoints.map(({t}) => t);
     const N = 2 ** Math.ceil(Math.log2(t.length * 16));
     const T0 = (t[t.length - 1] - t[0]) * N / (N - 1);
     const f0 = N / T0;
+    console.log(t);
     const [sx, sy] = catmullRomInterpolateN(x, y, t, N);
     const {X, Y} = FFT(sx, sy);
     const {r: RN, θ: Θ} = cartesian2Polar(X, Y);
     const R = RN.map(r => r / N);
     /** @type {{x: number, y: number, t: number}[]} */
     const points = [];
-    const animation = new AnimationController(elapse => {
+    const animation = new AnimationController((elapse, pause) => {
         context.save();
         context.resetTransform();
         context.clearRect(0, 0, canvas.width, canvas.height);
@@ -541,8 +543,10 @@ for (;;) {
         context.beginPath();
         context.stroke(linePath);
         
-        points.push({x: x, y: y, t: elapse});
-        points.splice(0, points.findIndex(({t}) => elapse - t <= T0) - 1);
+        if (!pause) {
+            points.push({x: x, y: y, t: elapse});
+            points.splice(0, points.findIndex(({t}) => elapse - t <= T0) - 1);
+        }
         
         context.lineWidth = config.trace ? 3 / config.zoom : 3;
         for (let i = 1, l = points.length; i < l; i++) {
@@ -576,5 +580,45 @@ for (;;) {
     mouseLeftDown().then(() => {
         animation.stop();
         document.removeEventListener('keydown', keydownHandler);
+    });
+})
+
+{
+    let pointerPressed = false;
+    /** @type {{t: number, x: number, y: number}[]} */
+    let points;
+    /** @type {number} */
+    let startTime;
+    
+    document.addEventListener('pointerdown', e => {
+        if (pointerPressed) return;
+        pointerPressed = true;
+        const point = {t: 0, ...client2Canvas(e.x, e.y)}
+        points = [point];
+        startTime = performance.now() / 1000;
+        document.dispatchEvent(new CustomEvent("mypointerdown", { detail: point }));
+    })
+    
+    document.addEventListener('pointermove', e => {
+        if (!pointerPressed) return;
+        const lastT = points.at(-1).t;
+        const newT = performance.now() / 1000 - startTime;
+        const point = {t: lastT < newT ? newT : lastT + 2**-10, ...client2Canvas(e.x, e.y)}
+        points.push(point);
+        document.dispatchEvent(new CustomEvent("mypointermove", { detail: point }));
+    })
+    
+    const onPointerAbort = e => {
+        if (!pointerPressed) return;
+        pointerPressed = false;
+        document.dispatchEvent(new CustomEvent("mypointerup", { detail: points }));
+    }
+    
+    document.addEventListener('pointerup', onPointerAbort);
+    document.addEventListener('pointercancel', onPointerAbort);
+    document.addEventListener('blur', onPointerAbort);
+    document.addEventListener('contextmenu', onPointerAbort);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) onPointerAbort();
     });
 }
