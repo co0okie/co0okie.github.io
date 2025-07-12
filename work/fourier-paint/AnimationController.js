@@ -1,31 +1,35 @@
 export default class AnimationController {
     #stopSignal; #speed; #elapse; #prev; #pauseSignal;
     
-    /** @param {(elapse: number) => void} animation */
+    /** @param {(elapse: number, pause: boolean) => void} animation */
     constructor(animation) {
         this.#pauseSignal = false;
         this.#stopSignal = false;
         this.#speed = 1;
         this.#elapse = 0;
-        this.#prev = null;
         
         const callback = now => {
+            now /= 1000;
             if (this.#stopSignal) return;
-            if (!this.#pauseSignal && this.#prev !== null)
+            if (!this.#pauseSignal) {
                 this.#elapse += this.#speed * (now - this.#prev);
+            }
+            animation(this.#elapse, this.#pauseSignal);
             this.#prev = now;
-            if (!this.#pauseSignal) animation(this.#elapse / 1000);
             requestAnimationFrame(callback);
         }
-        requestAnimationFrame(callback);
+        requestAnimationFrame(now => {
+            this.#prev = now / 1000;
+            requestAnimationFrame(callback);
+        });
     }
     
-    speedUp() {
-        this.#speed *= 1.1;
+    speedUp(scale = 1.1) {
+        this.#speed *= scale;
     }
     
-    slowDown() {
-        this.#speed /= 1.1;
+    slowDown(scale = 1 / 1.1) {
+        this.#speed *= scale;
     }
     
     pause() {
