@@ -493,7 +493,6 @@ document.addEventListener('mypointerup', (
     const N = 2 ** Math.ceil(Math.log2(t.length * 16));
     const T0 = (t[t.length - 1] - t[0]) * N / (N - 1);
     const f0 = N / T0;
-    console.log(t);
     const [sx, sy] = catmullRomInterpolateN(x, y, t, N);
     const {X, Y} = FFT(sx, sy);
     const {r: RN, θ: Θ} = cartesian2Polar(X, Y);
