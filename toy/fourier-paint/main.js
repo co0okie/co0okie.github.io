@@ -506,7 +506,7 @@ document.addEventListener('mypointerup', (
         context.restore();
         
         let x = 0, y = 0;
-        const PI2n_N = PI2 * Math.round(elapse * f0) / N; // n = round(t * f0)
+        const PI2n_N = PI2 * elapse * f0 / N;
         const circlePath = new Path2D();
         const linePath = new Path2D();
         linePath.moveTo(0, 0);
@@ -521,7 +521,7 @@ document.addEventListener('mypointerup', (
             circlePath.moveTo(x + r, y);
             circlePath.arc(x, y, r, 0, PI2);
             // 2πkn/N = 2πktf0/N = 2πt/T0 * k
-            const θ = a + PI2n_N * k;
+            const θ = a + PI2n_N * (k >= N_2 ? k - N : k);
             x += r * Math.cos(θ);
             y += r * Math.sin(θ);
             linePath.lineTo(x, y);
