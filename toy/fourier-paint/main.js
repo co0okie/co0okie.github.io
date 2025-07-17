@@ -1,4 +1,4 @@
-import AnimationController from "./AnimationController.js";
+import AnimationController from "../../lib/AnimationController.js";
 import List from "../../lib/List.js";
 
 ////////// constant //////////
@@ -401,7 +401,6 @@ document.addEventListener('mypointerup', (
             context.lineTo(node.value.x, node.value.y);
             context.stroke();
         }
-        console.log(points);
     });
     
     /**
