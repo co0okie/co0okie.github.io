@@ -1,4 +1,5 @@
 import AnimationController from "./AnimationController.js";
+import List from "../../lib/List.js";
 
 ////////// constant //////////
 
@@ -342,8 +343,8 @@ document.addEventListener('mypointerup', (
     const {X, Y} = FFT(sx, sy);
     const {r: RN, θ: Θ} = cartesian2Polar(X, Y);
     const R = RN.map(r => r / N);
-    /** @type {{x: number, y: number, t: number}[]} */
-    const points = [];
+    /** @type {List<{x: number, y: number, t: number}>} */
+    let points = new List();
     const animation = new AnimationController((elapse, pause) => {
         context.save();
         context.resetTransform();
@@ -389,17 +390,18 @@ document.addEventListener('mypointerup', (
         
         if (!pause) {
             points.push({x: x, y: y, t: elapse});
-            points.splice(0, points.findIndex(({t}) => elapse - t <= T0) - 1);
+            points = points.extract(({t}) => elapse - t <= T0);
         }
         
         context.lineWidth = config.trace ? 3 / config.zoom : 3;
-        for (let i = 1, l = points.length; i < l; i++) {
+        if (points.head) for (let node = points.head.next, i = 1, l = points.length; node; node = node.next, i++) {
             context.globalAlpha = i / l;
             context.beginPath();
-            context.moveTo(points[i - 1].x, points[i - 1].y);
-            context.lineTo(points[i].x, points[i].y);
+            context.moveTo(node.prev.value.x, node.prev.value.y);
+            context.lineTo(node.value.x, node.value.y);
             context.stroke();
         }
+        console.log(points);
     });
     
     /**
