@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>雙模式頻譜分析儀</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --primary: #00d2ff;
+            --text-main: #e0e0e0;
+            --text-sub: #888;
+            --btn-bg: #333;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh; height: 100dvh;
+            display: flex; flex-direction: column;
+            overflow: hidden; 
+        }
+
+        #chart-area {
+            flex: 1 1 auto; min-height: 0; position: relative; width: 100%;
+        }
+
+        canvas { display: block; width: 100%; height: 100%; }
+
+        #controls-area {
+            flex: 0 0 auto;
+            background-color: var(--panel-bg);
+            border-top: 1px solid #333;
+            padding: 12px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            max-height: 50dvh; overflow-y: auto; z-index: 10;
+        }
+
+        .control-card {
+            background: var(--bg-color); border-radius: 10px; padding: 8px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .control-label { font-size: 11px; color: var(--text-sub); margin-bottom: 5px; }
+        .btn-group { display: flex; align-items: center; width: 100%; justify-content: space-between; }
+        .val-display {
+            font-family: monospace; font-size: 15px; color: var(--primary);
+            font-weight: bold; min-width: 50px; text-align: center;
+        }
+        button.adjust-btn {
+            background: var(--btn-bg); color: #fff; border: none;
+            width: 40px; height: 40px; border-radius: 8px;
+            font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        button.adjust-btn:active { background: var(--primary); color: #000; }
+        
+        /* 切換模式按鈕 */
+        #scaleBtn {
+            width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #444;
+            background: #2a2a2a; color: #fff; cursor: pointer; font-size: 14px;
+            margin-bottom: 5px;
+        }
+        #scaleBtn.active { background: var(--primary); color: #000; font-weight: bold; }
+
+        #overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+            z-index: 100; backdrop-filter: blur(5px);
+        }
+        #startBtn {
+            padding: 15px 30px; font-size: 1.2rem; background: var(--primary);
+            color: #000; border: none; border-radius: 50px; font-weight: bold;
+        }
+
+        @media (min-width: 600px) { #controls-area { grid-template-columns: repeat(3, 1fr); } }
+    </style>
+</head>
+<body>
+
+    <div id="chart-area">
+        <canvas id="spectrum"></canvas>
+        <div id="overlay"><button id="startBtn">TAP TO START</button></div>
+    </div>
+
+    <div id="controls-area">
+        <div class="control-card" style="grid-column: span 2;">
+             <button id="scaleBtn" onclick="toggleScale()">Axis: Logarithmic</button>
+        </div>
+
+        <div class="control-card">
+            <span class="control-label">FFT Size</span>
+            <div class="btn-group">
+                <button class="adjust-btn" onclick="updateFFT(0.5)">÷</button>
+                <span id="disp-fft" class="val-display">4096</span>
+                <button class="adjust-btn" onclick="updateFFT(2)">×</button>
+            </div>
+        </div>
+
+        <div class="control-card">
+            <span class="control-label">Min Hz</span>
+            <div class="btn-group">
+                <button class="adjust-btn" onclick="updateFreqRange('min', -1)">−</button>
+                <span id="disp-minFreq" class="val-display">20</span>
+                <button class="adjust-btn" onclick="updateFreqRange('min', 1)">+</button>
+            </div>
+        </div>
+
+        <div class="control-card">
+            <span class="control-label">Max Hz</span>
+            <div class="btn-group">
+                <button class="adjust-btn" onclick="updateFreqRange('max', -1)">−</button>
+                <span id="disp-maxFreq" class="val-display">4k</span>
+                <button class="adjust-btn" onclick="updateFreqRange('max', 1)">+</button>
+            </div>
+        </div>
+
+        <div class="control-card">
+            <span class="control-label">Min dB</span>
+            <div class="btn-group">
+                <button class="adjust-btn" onclick="updateDB('min', -5)">−</button>
+                <span id="disp-minDB" class="val-display">-90</span>
+                <button class="adjust-btn" onclick="updateDB('min', 5)">+</button>
+            </div>
+        </div>
+
+        <div class="control-card">
+            <span class="control-label">Max dB</span>
+            <div class="btn-group">
+                <button class="adjust-btn" onclick="updateDB('max', -5)">−</button>
+                <span id="disp-maxDB" class="val-display">-10</span>
+                <button class="adjust-btn" onclick="updateDB('max', 5)">+</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let audioCtx, analyser, source;
+    let isRunning = false;
+    let dataArray;
+    let canvas, ctx, chartArea;
+    let width, height;
+
+    let state = {
+        fftSize: 4096, 
+        minFreq: 27.499, 
+        maxFreq: 4186.01, 
+        minDecibels: -80,
+        maxDecibels: -10,
+        isLogScale: true
+    };
+
+    const WHOLE_TONE_FACTOR = Math.pow(2, 1/6);
+    const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+    const ui = {
+        fft: document.getElementById('disp-fft'),
+        minFreq: document.getElementById('disp-minFreq'),
+        maxFreq: document.getElementById('disp-maxFreq'),
+        minDB: document.getElementById('disp-minDB'),
+        maxDB: document.getElementById('disp-maxDB'),
+        overlay: document.getElementById('overlay'),
+        startBtn: document.getElementById('startBtn'),
+        scaleBtn: document.getElementById('scaleBtn')
+    };
+
+    function formatNumber(num) {
+        let s = num.toPrecision(3);
+        if (s.includes('e')) {
+            return Math.round(num).toString();
+        }
+        return s;
+    }
+
+    function init() {
+        canvas = document.getElementById('spectrum');
+        ctx = canvas.getContext('2d');
+        chartArea = document.getElementById('chart-area');
+        
+        const resizeObserver = new ResizeObserver(entries => resizeCanvas());
+        resizeObserver.observe(chartArea);
+        
+        updateUI();
+    }
+
+    function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = chartArea.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        canvas.style.width = `${rect.width}px`;
+        canvas.style.height = `${rect.height}px`;
+        ctx.scale(dpr, dpr);
+        width = rect.width;
+        height = rect.height;
+    }
+
+    ui.startBtn.onclick = async () => {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
+            });
+            analyser = audioCtx.createAnalyser();
+            source = audioCtx.createMediaStreamSource(stream);
+            applyStateToAnalyser();
+            source.connect(analyser);
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            isRunning = true;
+            ui.overlay.style.display = 'none';
+            draw();
+        } catch (e) { alert("Error: " + e.message); }
+    };
+
+    function applyStateToAnalyser() {
+        if (!analyser) return;
+        analyser.fftSize = state.fftSize;
+        analyser.minDecibels = state.minDecibels;
+        analyser.maxDecibels = state.maxDecibels;
+        analyser.smoothingTimeConstant = 0.8;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+    }
+
+    function updateUI() {
+        ui.fft.innerText = state.fftSize;
+        ui.minFreq.innerText = formatNumber(state.minFreq);
+        ui.maxFreq.innerText = formatNumber(state.maxFreq);
+        ui.minDB.innerText = formatNumber(state.minDecibels);
+        ui.maxDB.innerText = formatNumber(state.maxDecibels);
+    }
+
+    // --- Helper Functions for Scale Conversion ---
+    
+    // 頻率 -> 0~1 的比例位置
+    function getXRatio(f) {
+        if (state.isLogScale) {
+            const logMin = Math.log10(state.minFreq);
+            const logMax = Math.log10(state.maxFreq);
+            return (Math.log10(f) - logMin) / (logMax - logMin);
+        } else {
+            return (f - state.minFreq) / (state.maxFreq - state.minFreq);
+        }
+    }
+
+    // 0~1 的比例位置 -> 頻率
+    function getFreqFromRatio(ratio) {
+        if (state.isLogScale) {
+            const logMin = Math.log10(state.minFreq);
+            const logMax = Math.log10(state.maxFreq);
+            return Math.pow(10, logMin + (logMax - logMin) * ratio);
+        } else {
+            return state.minFreq + (state.maxFreq - state.minFreq) * ratio;
+        }
+    }
+
+    // --- Controls ---
+    window.toggleScale = () => {
+        state.isLogScale = !state.isLogScale;
+        ui.scaleBtn.innerText = state.isLogScale ? "Axis: Logarithmic" : "Axis: Linear";
+    };
+
+    window.updateFFT = (m) => {
+        let n = state.fftSize * m;
+        if (n >= 64 && n <= 16384) { state.fftSize = n; applyStateToAnalyser(); updateUI(); }
+    };
+    window.updateFreqRange = (t, d) => {
+        const f = d > 0 ? WHOLE_TONE_FACTOR : 1/WHOLE_TONE_FACTOR;
+        if (t === 'min') {
+            let n = state.minFreq * f;
+            if (n >= 10 && n < state.maxFreq) state.minFreq = n;
+        } else {
+            let n = state.maxFreq * f;
+            if (n <= 24000 && n > state.minFreq) state.maxFreq = n;
+        }
+        updateUI();
+    };
+    window.updateDB = (t, s) => {
+        if (t === 'min') {
+            let n = state.minDecibels + s;
+            if (n >= -150 && n < state.maxDecibels) state.minDecibels = n;
+        } else {
+            let n = state.maxDecibels + s;
+            if (n <= 0 && n > state.minDecibels) state.maxDecibels = n;
+        }
+        applyStateToAnalyser(); updateUI();
+    };
+
+    // --- Drawing ---
+    function draw() {
+        if (!isRunning) return;
+        requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArray);
+
+        ctx.fillStyle = '#121212';
+        ctx.fillRect(0, 0, width, height);
+        
+        const pTop = 20, pRight = 20, pBot = 40, pLeft = 35;
+        const gW = width - pLeft - pRight;
+        const gH = height - pTop - pBot;
+
+        // 1. Grid Y (dB)
+        ctx.fillStyle = '#666'; ctx.font = '10px Arial'; ctx.textAlign = 'right';
+        ctx.strokeStyle = '#333'; ctx.beginPath();
+        for(let i=0, n=Math.ceil(gH / 100); i<=n; i++) {
+            const y = pTop + (i/n) * gH;
+            const db = state.maxDecibels - (i/n)*(state.maxDecibels-state.minDecibels);
+            ctx.moveTo(pLeft, y); ctx.lineTo(width - pRight, y);
+            ctx.fillText(formatNumber(db), pLeft-4, y+3);
+        }
+        ctx.stroke();
+
+        // 2. Grid X (Notes) - 使用「像素碰撞檢測」策略
+        const sNote = Math.ceil(12*Math.log2(state.minFreq/440)+69);
+        const eNote = Math.floor(12*Math.log2(state.maxFreq/440)+69);
+
+        ctx.textAlign = 'center'; 
+        ctx.beginPath();
+        
+        // 記錄上一個畫文字的位置 (用來判斷是否重疊)
+        let lastLabelX = -100; 
+        // 為了避免線條太密集變成色塊，也記錄線條位置
+        let lastLineX = -100;
+
+        // 線性模式下，低頻非常擁擠，我們不能依賴 note count 做 stride
+        // 我們直接遍歷所有半音，然後根據位置決定要不要畫
+        for (let i = sNote; i <= eNote; i++) {
+            const f = 440 * Math.pow(2, (i-69)/12);
+            const ratio = getXRatio(f); // 自動切換 log/linear 演算法
+            const x = pLeft + ratio * gW;
+
+            if(x < pLeft || x > width - pRight) continue;
+
+            // 策略：
+            // 1. 線條：只要距離上一條線 > 10px 就畫 (避免變全黑)
+            // 2. 文字：只要距離上一個字 > 25px 就畫 (避免重疊)
+            
+            const noteIdx = i % 12;
+            
+            // 判斷是否畫線
+            const drawLine = x - lastLineX > 10;
+            if (drawLine) { // 最小線距 10px
+                ctx.strokeStyle = '#2a2a2a';
+                
+                ctx.moveTo(x, pTop); ctx.lineTo(x, pTop + gH);
+                lastLineX = x;
+            }
+
+            // 判斷是否畫字 (需要更多空間)
+            const minTextDist = 25; 
+            
+            if (x - lastLabelX > minTextDist && drawLine) {
+                const name = NOTES[noteIdx] + (Math.floor(i/12)-1);
+                
+                // 畫文字
+                ctx.fillStyle = '#666';
+                ctx.font = '12px Arial';
+                ctx.fillText(name, x, pTop + gH + 14); 
+                
+                ctx.font = '10px Arial';
+                ctx.fillText(formatNumber(f), x, pTop + gH + 26);
+                
+                lastLabelX = x;
+            }
+        }
+        ctx.strokeStyle = '#333'; 
+        ctx.stroke(); 
+
+        // 3. Spectrum Line - 使用通用 getFreqFromRatio
+        let points = [];
+        const binW = audioCtx.sampleRate/state.fftSize;
+        const sliceWidth = 2; 
+
+        for(let x=0; x<=gW; x+=sliceWidth) {
+            const pct = x/gW;
+            const f = getFreqFromRatio(pct);
+            const exactIndex = f/binW;
+            
+            // 下一個點的頻率 (用來做 Max Pooling)
+            const nextPct = (x + sliceWidth)/gW;
+            const nextF = getFreqFromRatio(nextPct);
+            const nextIndex = nextF/binW;
+            
+            let val = 0;
+            // 由於 linear scale 右邊很疏，index 跳動很大，必須用 Max Pooling
+            // 而 linear scale 左邊很密，需要 linear interpolation
+            if (nextIndex - exactIndex > 1) { 
+                const iStart = Math.floor(exactIndex);
+                const iEnd = Math.floor(nextIndex);
+                for(let k=iStart; k<=iEnd && k<dataArray.length; k++) {
+                    if(dataArray[k] > val) val = dataArray[k];
+                }
+            } else { 
+                const i = Math.floor(exactIndex);
+                const weight = exactIndex - i;
+                const v1 = dataArray[i] || 0;
+                const v2 = dataArray[i+1] || 0;
+                val = v1 * (1 - weight) + v2 * weight;
+            }
+
+            const y = (pTop + gH) - (val/255)*gH;
+            points.push({x: pLeft + x, y: y});
+        }
+
+        ctx.beginPath();
+        ctx.strokeStyle = '#00d2ff';
+        ctx.lineWidth = 2;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        if (points.length > 0) {
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length - 2; i++) {
+                const xc = (points[i].x + points[i + 1].x) / 2;
+                const yc = (points[i].y + points[i + 1].y) / 2;
+                ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+            }
+            if(points.length > 2) {
+                ctx.quadraticCurveTo(
+                    points[points.length-2].x, points[points.length-2].y, 
+                    points[points.length-1].x, points[points.length-1].y
+                );
+            }
+        }
+        ctx.stroke();
+    }
+    
+    init();
+</script>
+</body>
+</html>
