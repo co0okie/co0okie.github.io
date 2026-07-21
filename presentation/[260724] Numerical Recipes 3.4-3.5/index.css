@@ -1,0 +1,199 @@
+.reveal {
+
+  /* 投影片外空白處用黑色 */
+  background-color: black;
+
+  & .slides .slide {
+
+    /* global setting */
+    background-color: white;
+    color: #262626;
+    font-size: 24pt;
+    height: 100%;
+    & > * {
+      margin-left: 50px;
+      margin-right: 50px;
+    }
+    & * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    & .math.inline {
+      font-size: 85%;
+    }
+    & .math.display {
+      font-size: 80%;
+    }
+
+    /* custom page number */
+    & .custom-page-number {
+      position: absolute;
+      bottom: 12px;
+      right: 10px;
+      margin: 0;
+      color: white;
+      font-size: 12pt;
+      font-weight: bold;
+      z-index: 999;
+    }
+
+    /* cover page */
+    &.cover-slide {
+      font-weight: bold;
+
+      & > * {
+        position: absolute;
+        left: 0;
+        text-align: left;
+      }
+
+      & h1 {
+        color: white;
+        font-size: 34pt;
+        font-style: italic;
+        background-color: #448AD7;
+        height: 33.2%;
+        width: 100%;
+        top: 0;
+        display: flex;
+        align-items: center;
+        margin: 0;
+        padding-left: 50px;
+      }
+      
+      & .author {
+        color: black;
+        font-size: 22pt;
+        top: 35%;
+      }
+      
+      & .date {
+        color: #993300;
+        font-size: 22pt;
+        top: 49%;
+      }
+      
+      & .institute {
+        color: #404040;
+        font-size: 17pt;
+        top: 60%;
+
+        & p {
+          line-height: 1.5;
+        }
+      }
+
+      /* LOGO at the bottom */
+      &::after {
+        content: "";
+        position: absolute;
+        width: 100%; 
+        height: 100%;
+        background: 
+          url("THE EDA LAB TAIWAN TECH.png") left 30px bottom 10px / 45% auto no-repeat;
+      }
+    }
+
+    /* section title */
+    &.title-slide:not(.cover-slide) {
+      &::before {
+        content: "";
+        position: absolute;
+        width: 100%; 
+        height: 100%;
+        background: url("THE EDA LAB TAIWAN TECH.png") left 40px bottom 68% / 37% auto no-repeat;
+      }
+
+      & h1 {
+        color: white;
+        font-size: 42pt;
+        position: absolute;
+        top: 36%;
+        left: 0;
+        width: 100%;
+        height: 22%;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        text-align: left;
+        padding-left: 50px;
+        background-color: #448AD7;
+      }
+    }
+    
+    /* normal page title */
+    & h2 {
+      height: 85px;
+      background-color: #448AD7;
+      color: white;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36pt;
+      font-weight: bold;
+    }
+    
+    &:not(.cover-slide) {
+      /* first element that is not h2 */
+      & > :not(h2):first-child, & > h2 + * {
+        margin-top: 40px;
+      }
+      /* tail at bottom */
+      background: 
+        url("TAIWAN TECH.png") left 29px bottom 6px / auto 33px no-repeat,
+        url("EDA LAB.png") left 173px bottom 2px / auto 41px no-repeat,
+        linear-gradient(to top, #448AD7 0%, #448AD7 45px, transparent 45px) left bottom / 100% 45px no-repeat,
+        white;
+    }
+    
+    
+    /* list */
+    & ul, & ol {
+      padding-left: 40px;
+    }
+    
+    & ul:not(.slide > ul), 
+    & ol:not(.slide > ol) {
+      margin-left: 0;
+    }
+    
+    & li {
+      margin-top: 0;
+      margin-bottom: 4px;
+    }
+    
+    & > ul > li {
+      list-style-type: none;
+    }
+    
+    & > ul > li::marker {
+      content: "●  ";
+      color: #404040;
+      font-size: 2.3rem;
+    }
+    
+    & > ul > li > ul > li {
+      list-style-type: square;
+      color: #083763;
+      font-size: 21pt;
+    }
+    
+    & > ul > li > ul > li::marker {
+      color: #083763;
+    }
+    
+    & > ul > li > ul > li > ul > li {
+      color: #993300;
+      font-size: 19pt;
+    }
+    
+    & > ul > li > ul > li > ul > li::marker {
+      font-family: "標楷體", BiauKai, DFKai-SB, serif;
+      content: "➢ ";
+      color: #993300;
+    }
+  }
+}
+
+

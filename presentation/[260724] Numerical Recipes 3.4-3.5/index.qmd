@@ -1,0 +1,537 @@
+---
+format:
+  revealjs:
+    width: 1024
+    height: 768
+    css: index.css
+    margin: 0
+    progress: false
+filters:
+  - diagram
+---
+
+# Numerical Recipes - The Art of Scientific Computing 3.4 & 3.5 {.cover-slide}
+
+::: {.author}
+Presenter: Pin-Han Lee  
+Advisor: Shao-Yun Fang
+:::
+
+::: {.date}
+Jul. 24, 2026
+:::
+
+::: {.institute}
+The Electronic Design Automation Laboratory  
+Department of Electrical Engineering  
+National Taiwan University of Science and Technology  
+Taipei 106, Taiwan
+:::
+
+## Overview
+
+<iframe src="https://www.desmos.com/calculator/m3mlcji2ct" width="90%" height="70%"></iframe>
+
+::: {.notes}
+給定一些取樣點，以及**已知的$x$**，求$y$。改變$x$，演算法就要重新跑一次。
+:::
+
+## Outline
+
+given $(x_0, y_0), (x_1, y_1), \cdots, (x_n, y_n)$
+
+- recall **3.2 Polynomial Interpolation and Extrapolation**
+  - given $x$, get $P(x)=c_0+c_1x+c_2x^2+\cdots+c_mx^m$
+- recall **3.3 Cubic Spline Interpolation**
+  - given $x$, get $S_i(x) = a_i + b_ix + c_ix^2 + d_ix^3, x \in [x_i, x_{i+1}]$
+- **3.4 Rational Function Interpolation and Extrapolation**
+  - given $x$, get $R(x)=\frac{P_\mu(x)}{Q_\nu(x)}=\frac{p_0+p_1x+\cdots+p_\mu x^\mu}{q_0+q_1x+\cdots+q_\nu x^\nu}$
+- **3.5 Coefficients of the Interpolating Polynomial**
+  - $c_0+c_1x+c_2x^2+\cdots+c_mx^m$
+  - get $c_0, c_1, \cdots, c_m$
+
+::: {.notes}
+3.2 就是多項式、3.3就是piecewise 3次多項式、3.4就是多項式除以多項式，分式
+3.5 與前面都不同，目標為找出這個多項式的係數
+:::
+
+# 3.4 Rational Function Interpolation and Extrapolation
+
+---
+
+- $f(x)=\frac{1}{\left(\left(x-2\right)^{2}+0.3\right)\left(x+2\right)}$, poles at $x=2 \pm \sqrt{0.3}i, -2$
+
+<iframe src="https://www.desmos.com/calculator/mrap4hcyil" width="90%" height="70%"></iframe>
+
+::: {.notes}
+rational function 最大的特色就是有 poles，假設原本函式是這個，這個函式有3個poles，所以在圖形上看起來會是這樣，取樣幾個點，如果用一般多項式差值會變這樣，這顯然不是我們要得，因此這時候就需要rational function interpolation
+:::
+
+## Rational Function
+
+$$
+R(x)=\frac{P_\mu(x)}{Q_\nu(x)}
+=\frac{p_0+p_1x+\cdots+p_\mu x^\mu}
+       {q_0+q_1x+\cdots+q_\nu x^\nu}
+=\frac{{p_0 \over q_0}+{p_1 \over q_0}x+\cdots+{p_\mu \over q_0} x^\mu}
+       {1+{q_1\over q_0}x+\cdots+{q_\nu \over q_0} x^\nu}
+$$
+
+- degree of freedom = $\mu+\nu+2$❌, $\mu+\nu+1$✅
+- $n$ sample points $\rightarrow$ $n = \mu + \nu + 1$
+
+::: {.center}
+| $n$ | $1$ | $2$ | $3$ | $4$ | $5$ | $6$ | $7$ |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| $R$ | $P_0 \over Q_0$ | $P_0 \over Q_1$ | $P_1 \over Q_1$ | $P_1 \over Q_2$ | $P_2 \over Q_2$ | $P_2 \over Q_3$ | $P_3 \over Q_3$ |
+:::
+
+- Called **diagonal rational function**
+
+> e.g. to simulate $P_5 \over Q_2$, use $P_5 \over Q_6$, need $n = 5 + 6 + 1 = 12$ points
+
+::: {.notes}
+把rational function寫成算式長這樣，一個多項式除以另一個多項式
+自由維度看似是上面的 $\mu+1$ 加上 $\nu+1$，但由於上下可以同乘常數結果仍然一樣，因此會少一個維度，或者也可以想成上下同除 $\q_0$，則其他地方自由維度就剩下 $\mu+\nu+1$
+然而 $\mu$ 與 $\nu$ 沒有那麼自由，例如當我給定 $n$ 為某值，就確定其分子分母次方數了。隨著 $n$ 增加分子分母次方數要嘛一樣要嘛分母=分子+1，看起來就像在矩陣對角線上，因此被稱呼為 diagonal rational function
+:::
+
+## How to get $\ R(x)$?
+
+::: {.brace-transition style="display: grid; place-items: end center;"}
+::: {style="grid-area: 1 / 1; align-self: end;"}
+$$
+\begin{array}{@{}c@{\quad}c@{\quad}c@{\quad}c@{\quad}c@{\quad}c@{\quad}c@{\quad}c@{\quad}c@{\quad}c@{\quad}c@{}}
+x_1 & \dots & x_{i-1} & x_i & x_{i+1} & \dots & x_{j-1} & x_j & x_{j+1} & \dots & x_n \\
+y_1 & \dots & y_{i-1} & y_i & y_{i+1} & \dots & y_{j-1} & y_j & y_{j+1} & \dots & y_n
+\end{array}
+$$
+:::
+
+::: {.fragment .fade-out data-fragment-index="1" style="grid-area: 1 / 1; align-self: end;"}
+$$
+\begin{array}{@{}c@{\quad}c@{\quad}c@{}}
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{}}x_1 & \dots & x_{i-1} \\ y_1 & \dots & y_{i-1}\end{array}}
+&
+\overbrace{
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{\quad}c@{\quad}c@{}}x_i & x_{i+1} & \dots & x_{j-1} & x_j \\ y_i & y_{i+1} & \dots & y_{j-1} & y_j\end{array}}
+}^{R_{i,j}(x)}
+&
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{}}x_{j+1} & \dots & x_n \\ y_{j+1} & \dots & y_n\end{array}}
+\end{array}
+$$
+:::
+
+::: {.fragment .fade-in-then-out data-fragment-index="1" style="grid-area: 1 / 1; align-self: end;"}
+$$
+\begin{array}{@{}c@{\quad}c@{\quad}c@{}}
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{\quad}c@{}}x_1 & \dots & x_{i-1} & x_i \\ y_1 & \dots & y_{i-1} & y_i\end{array}}
+&
+\overbrace{
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{\quad}c@{}}x_{i+1} & \dots & x_{j-1} & x_j \\ y_{i+1} & \dots & y_{j-1} & y_j\end{array}}
+}^{\color{blue}{R_{i+1,j}(x)}}
+&
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{}}x_{j+1} & \dots & x_n \\ y_{j+1} & \dots & y_n\end{array}}
+\end{array}
+$$
+:::
+
+::: {.fragment .fade-in-then-out data-fragment-index="2" style="grid-area: 1 / 1; align-self: end;"}
+$$
+\begin{array}{@{}c@{\quad}c@{\quad}c@{}}
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{}}x_1 & \dots & x_{i-1} \\ y_1 & \dots & y_{i-1}\end{array}}
+&
+\overbrace{
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{\quad}c@{}}x_i & x_{i+1} & \dots & x_{j-1} \\ y_i & y_{i+1} & \dots & y_{j-1}\end{array}}
+}^{\color{red}{R_{i,j-1}(x)}}
+&
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{\quad}c@{}}x_j & x_{j+1} & \dots & x_n \\ y_j & y_{j+1} & \dots & y_n\end{array}}
+\end{array}
+$$
+:::
+
+::: {.fragment .fade-in data-fragment-index="3" style="grid-area: 1 / 1; align-self: end;"}
+$$
+\begin{array}{@{}c@{\quad}c@{\quad}c@{}}
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{\quad}c@{}}x_1 & \dots & x_{i-1} & x_i \\ y_1 & \dots & y_{i-1} & y_i\end{array}}
+&
+\overbrace{
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{}}x_{i+1} & \dots & x_{j-1} \\ y_{i+1} & \dots & y_{j-1}\end{array}}
+}^{\color{green}{R_{i+1,j-1}(x)}}
+&
+\phantom{\begin{array}{@{}c@{\quad}c@{\quad}c@{\quad}c@{}}x_j & x_{j+1} & \dots & x_n \\ y_j & y_{j+1} & \dots & y_n\end{array}}
+\end{array}
+$$
+:::
+:::
+
+- We need $R_{1,n}(x)$
+
+$$
+R_{i,j}(x)=
+\begin{cases}
+\color{blue}{R_{i+1,j}(x)}+\frac{\color{blue}{R_{i+1,j}(x)}-\color{red}{R_{i,j-1}(x)}}{\left(\frac{x-x_i}{x-x_j}\right)\left(1-\frac{\color{blue}{R_{i+1,j}(x)}-\color{red}{R_{i,j-1}(x)}}{\color{blue}{R_{i+1,j}(x)}-\color{green}{R_{i+1,j-1}(x)}}\right)-1}, & i<j \\
+y_i, & i=j \\
+0, & i>j
+\end{cases}
+$$
+
+
+::: {.notes}
+對於給定的 $n$ 個點 $1$ 到 $n$，$R_{i,j}(x)$ 代表只用第 $i$ 到 $j$ 個點做出來的函式
+因此我們目標是找出用全部1~n的點做出來的函式
+他們之間存在以下遞迴關係
+在一般狀況下會用到3個，分別是
+藍色，不包含左邊的點
+紅色，不包含右邊的點
+綠色，不包含左右邊的點
+若 $i=j$，代表只有一個點，直接回傳 $y_i$
+若 $i>j$，代表已經不是一個合法的範圍，回傳 $0$
+這其實就是動態規劃dynamic programming
+:::
+
+---
+
+::: {.dp-animation style="display: grid; place-items: center;"}
+::: {style="grid-area: 1 / 1;"}
+```tikz
+%%| fig-align: center
+\begin{tikzpicture}[x=3cm, y=2cm]
+  \tikzset{node/.style={inner sep=3pt,font=\LARGE}}
+  \path[use as bounding box] (-0.55,0.55) rectangle (7.55,-7.55);
+  \draw[thick] (-0.42,0.42) -- (0.42,-0.42);
+  \node[font=\LARGE\bfseries] at (-0.24,-0.20) {$i$};
+  \node[font=\LARGE\bfseries] at (0.24,0.20) {$j$};
+  \foreach \i in {1,...,7} {
+    \node[font=\LARGE] at (\i,0) {$\i$};
+    \node[font=\LARGE] at (0,-\i) {$\i$};
+  }
+  \draw[thick] (0.5,0.5) -- (0.5,-7.5);
+  \draw[thick] (-0.5,-0.5) -- (7.5,-0.5);
+  \foreach \i in {1,...,7}
+    \node[node] at (\i,-\i) {$y_{\i}$};
+  \foreach \i in {1,...,6} {
+    \pgfmathtruncatemacro{\ip}{\i+1}
+    \node[node] at (\i,-\ip) {$0$};
+  }
+\end{tikzpicture}
+```
+:::
+
+::: {.fragment data-fragment-index="1" style="grid-area: 1 / 1;"}
+```tikz
+%%| fig-align: center
+\begin{tikzpicture}[x=3cm,y=2cm]
+  \tikzset{node/.style={inner sep=3pt,font=\LARGE},arrow/.style={->,>=stealth,thick,shorten <=2pt,shorten >=2pt},hidden/.style={node,opacity=0}}
+  \path[use as bounding box] (-0.55,0.55) rectangle (7.55,-7.55);
+  \foreach \i in {1,...,6} {
+    \pgfmathtruncatemacro{\ip}{\i+1}
+    \node[hidden] (A\i) at (\i,-\i) {$y_{\i}$};
+    \node[hidden] (B\i) at (\i,-\ip) {$0$};
+    \node[hidden] (C\i) at (\ip,-\ip) {$y_{\ip}$};
+    \node[node] (T\i) at (\ip,-\i) {$R_{\i,\ip}$};
+    \draw[arrow] (A\i)--(T\i);
+    \draw[arrow] (B\i)--(T\i);
+    \draw[arrow] (C\i)--(T\i);
+  }
+\end{tikzpicture}
+```
+:::
+
+::: {.fragment data-fragment-index="2" style="grid-area: 1 / 1;"}
+```tikz
+%%| fig-align: center
+\begin{tikzpicture}[x=3cm,y=2cm]
+  \tikzset{node/.style={inner sep=3pt,font=\LARGE},arrow/.style={->,>=stealth,thick,shorten <=2pt,shorten >=2pt},hidden/.style={node,opacity=0}}
+  \path[use as bounding box] (-0.55,0.55) rectangle (7.55,-7.55);
+  \def\k{2}
+  \foreach \i in {1,...,5} {
+    \pgfmathtruncatemacro{\ip}{\i+1}
+    \pgfmathtruncatemacro{\jm}{\i+\k-1}
+    \pgfmathtruncatemacro{\j}{\i+\k}
+    \node[hidden] (A\i) at (\jm,-\i) {$R_{\i,\jm}$};
+    \node[hidden] (B\i) at (\jm,-\ip) {$R_{\ip,\jm}$};
+    \node[hidden] (C\i) at (\j,-\ip) {$R_{\ip,\j}$};
+    \node[node] (T\i) at (\j,-\i) {$R_{\i,\j}$};
+    \draw[arrow] (A\i)--(T\i); \draw[arrow] (B\i)--(T\i); \draw[arrow] (C\i)--(T\i);
+  }
+\end{tikzpicture}
+```
+:::
+
+::: {.fragment data-fragment-index="3" style="grid-area: 1 / 1;"}
+```tikz
+%%| fig-align: center
+\begin{tikzpicture}[x=3cm,y=2cm]
+  \tikzset{node/.style={inner sep=3pt,font=\LARGE},arrow/.style={->,>=stealth,thick,shorten <=2pt,shorten >=2pt},hidden/.style={node,opacity=0}}
+  \path[use as bounding box] (-0.55,0.55) rectangle (7.55,-7.55);
+  \def\k{3}
+  \foreach \i in {1,...,4} {
+    \pgfmathtruncatemacro{\ip}{\i+1}
+    \pgfmathtruncatemacro{\jm}{\i+\k-1}
+    \pgfmathtruncatemacro{\j}{\i+\k}
+    \node[hidden] (A\i) at (\jm,-\i) {$R_{\i,\jm}$};
+    \node[hidden] (B\i) at (\jm,-\ip) {$R_{\ip,\jm}$};
+    \node[hidden] (C\i) at (\j,-\ip) {$R_{\ip,\j}$};
+    \node[node] (T\i) at (\j,-\i) {$R_{\i,\j}$};
+    \draw[arrow] (A\i)--(T\i); \draw[arrow] (B\i)--(T\i); \draw[arrow] (C\i)--(T\i);
+  }
+\end{tikzpicture}
+```
+:::
+
+::: {.fragment data-fragment-index="4" style="grid-area: 1 / 1;"}
+```tikz
+%%| fig-align: center
+\begin{tikzpicture}[x=3cm,y=2cm]
+  \tikzset{node/.style={inner sep=3pt,font=\LARGE},arrow/.style={->,>=stealth,thick,shorten <=2pt,shorten >=2pt},hidden/.style={node,opacity=0}}
+  \path[use as bounding box] (-0.55,0.55) rectangle (7.55,-7.55);
+  \def\k{4}
+  \foreach \i in {1,...,3} {
+    \pgfmathtruncatemacro{\ip}{\i+1}
+    \pgfmathtruncatemacro{\jm}{\i+\k-1}
+    \pgfmathtruncatemacro{\j}{\i+\k}
+    \node[hidden] (A\i) at (\jm,-\i) {$R_{\i,\jm}$};
+    \node[hidden] (B\i) at (\jm,-\ip) {$R_{\ip,\jm}$};
+    \node[hidden] (C\i) at (\j,-\ip) {$R_{\ip,\j}$};
+    \node[node] (T\i) at (\j,-\i) {$R_{\i,\j}$};
+    \draw[arrow] (A\i)--(T\i); \draw[arrow] (B\i)--(T\i); \draw[arrow] (C\i)--(T\i);
+  }
+\end{tikzpicture}
+```
+:::
+
+::: {.fragment data-fragment-index="5" style="grid-area: 1 / 1;"}
+```tikz
+%%| fig-align: center
+\begin{tikzpicture}[x=3cm,y=2cm]
+  \tikzset{node/.style={inner sep=3pt,font=\LARGE},arrow/.style={->,>=stealth,thick,shorten <=2pt,shorten >=2pt},hidden/.style={node,opacity=0}}
+  \path[use as bounding box] (-0.55,0.55) rectangle (7.55,-7.55);
+  \def\k{5}
+  \foreach \i in {1,...,2} {
+    \pgfmathtruncatemacro{\ip}{\i+1}
+    \pgfmathtruncatemacro{\jm}{\i+\k-1}
+    \pgfmathtruncatemacro{\j}{\i+\k}
+    \node[hidden] (A\i) at (\jm,-\i) {$R_{\i,\jm}$};
+    \node[hidden] (B\i) at (\jm,-\ip) {$R_{\ip,\jm}$};
+    \node[hidden] (C\i) at (\j,-\ip) {$R_{\ip,\j}$};
+    \node[node] (T\i) at (\j,-\i) {$R_{\i,\j}$};
+    \draw[arrow] (A\i)--(T\i); \draw[arrow] (B\i)--(T\i); \draw[arrow] (C\i)--(T\i);
+  }
+\end{tikzpicture}
+```
+:::
+
+::: {.fragment data-fragment-index="6" style="grid-area: 1 / 1;"}
+```tikz
+%%| fig-align: center
+\begin{tikzpicture}[x=3cm,y=2cm]
+  \tikzset{node/.style={inner sep=3pt,font=\LARGE},arrow/.style={->,>=stealth,thick,shorten <=2pt,shorten >=2pt},hidden/.style={node,opacity=0}}
+  \path[use as bounding box] (-0.55,0.55) rectangle (7.55,-7.55);
+  \node[hidden] (A) at (6,-1) {$R_{1,6}$};
+  \node[hidden] (B) at (6,-2) {$R_{2,6}$};
+  \node[hidden] (C) at (7,-2) {$R_{2,7}$};
+  \node[node] (T) at (7,-1) {$R_{1,7}$};
+  \draw[arrow] (A)--(T); \draw[arrow] (B)--(T); \draw[arrow] (C)--(T);
+\end{tikzpicture}
+```
+:::
+:::
+
+::: {.notes}
+以 n=7 個點為例，如果畫成DP table會長這樣
+以bottom up順序建立，首先對角線上因為i=j只有一個點，因此直接取y_i，i>j區域全部都是0
+接著建立第一層，可以看到每個都依賴自己左邊、左下、下面的結果
+重複執行，最後就可以得到我們要得 R_{1,7}
+:::
+
+---
+
+<iframe src="https://www.desmos.com/calculator/bphmeg7asl" width="90%" height="85%"></iframe>
+
+::: {.notes}
+實際舉例來看，當i=j只有一個點的時候，就是一個水平線常數
+當2個點的時候，就分別穿過2個點
+依此類推5個點時分別是少掉左邊和少掉右邊的點
+最後就是完整的6點
+:::
+
+## Performance
+
+- Time complexity: $O(n^2)$
+- Space complexity: $O(n)$
+
+::: {.notes}
+時間複雜度因為二維DP table，所以是n^2，空間複雜度可以透過一些方法壓到O(n)
+:::
+
+# 3.4.1 Barycentric Rational Interpolation
+
+## Why Another Rational Method?
+
+- No poles on the real axis $\Rightarrow$ **spurious poles**
+
+<iframe src="https://www.desmos.com/calculator/cx5zvgcdiu" width="90%" height="65%"></iframe>
+
+::: {.notes}
+若原函式其實在實數軸上沒有poles，但因為計算誤差等原因，導致前面的方法錯誤的產生一個實數軸上的pole
+這時候就可以使用這個新的方法，即便誤差稍微大一點也可以保證不會在實數軸上有pole，不會有突然正負無限大的點
+:::
+
+## Barycentric Form
+
+$$
+R(x)=
+\frac{\displaystyle\sum_{i=0}^{n-1}\frac{w_i}{x-x_i}y_i}
+     {\displaystyle\sum_{i=0}^{n-1}\frac{w_i}{x-x_i}}
+$$
+
+::: {style="white-space: nowrap; text-align: center; font-size: 1em;"}
+$\displaystyle x\approx x_k$[$\displaystyle\Longrightarrow\sum_{i=0}^{n-1}\frac{w_i}{x-x_i}\approx\frac{w_k}{x-x_k}$]{.fragment data-fragment-index="1"}[$\require{cancel}\displaystyle\Longrightarrow R(x)\approx\frac{\bcancel{\frac{w_k}{x-x_k}}y_k}{\bcancel{\frac{w_k}{x-x_k}}}\approx y_k$]{.fragment data-fragment-index="2"}
+:::
+
+- $w_i$: precomputed weight
+- $R(x_i)=y_i$
+
+::: {.notes}
+$w_i$ 就只是常數權重
+當 $x$ 趨近某個取樣點 $x_k$，分母變0，summation其中一項會遠大於其他項，上下約分就剩下 $y_k$
+因此可以保證曲線穿過取樣點
+:::
+
+## Weights
+
+- choose $d \in \{0, 1, \dots, n-1\}$
+
+$$
+w_k=
+\sum_{i=\max(0,k-d)}^{\min(k,n-d-1)}
+(-1)^i
+\prod_{\substack{j=i\\j\ne k}}^{i+d}
+\dfrac{1}{x_k-x_j}
+$$
+
+- smaller $d \Rightarrow$ more stable
+- $d = n - 2$ or $d = n - 1$<br>$\Rightarrow$ equivalent to **3.2 Polynomial Interpolation**
+
+::: {.notes}
+首先要選擇一個 $d$，接著用這個很複雜的公式算出權重
+$d$ 越小越穩定、太大會容易震盪，書中建議從小的d開始測試
+當 $d=n-2$ 或 $d=n-1$ 時，會得到與前面多項式插值一模一樣的結果
+:::
+
+---
+
+<iframe src="https://www.desmos.com/calculator/v81qwwjxtr" width="90%" height="85%"></iframe>
+
+::: {.notes}
+紅色的是一般3.2的一般多項式
+紫色的是3.4.1這章在 $d=0$ 的樣子
+當逐漸把 $d$ 調大，可以看到周圍開始震盪，最後變成跟 3.2 模一樣
+:::
+
+## Property
+
+::: {.center}
+| Operation | Complexity |
+|---|---:|
+| Construct all weights | $O(nd)$ |
+| Evaluate one $R(x)$ | $O(n)$ |
+:::
+
+- infinitely smooth
+- competitive with cubic splines
+
+::: {.notes}
+計算權重需要 $O(nd)$，但接下來每次查詢一個 $x$ 只要 $O(n)$
+且這個方法的曲線無限光滑無限可微，有時誤差會比cubic spline小
+:::
+
+# 3.5 Coefficients of the Interpolating Polynomial
+
+## Getting Value vs Getting Coefficients
+
+$$
+P(x)=c_0+c_1x+c_2x^2+\cdots+c_{n-1}x^{n-1}
+$$
+
+- **3.2**: evaluating $P(x)$
+- **3.5**: getting $c_0, c_1, \cdots, c_{n-1}$
+
+::: {.notes}
+同樣都是多項式，3.2是直接算出某個指定x的函數值，3.5則是算出係數
+:::
+
+## When Are the Coefficients Useful?
+
+- $P(x),P'(x),P''(x),\dots$
+- Convolution with known moments
+- **Don't**: coefficients $\Rightarrow$ interpolation
+  - error $\uparrow$, accuracy $\downarrow$
+
+::: {.notes}
+只有真的需要係數才算係數，例如多階導數，或是和另一個已知moments的函式做convolution
+不要先算係數，才算插值，很容易出現誤差
+要算插值直接使用3.2的方法通常更準確
+:::
+
+## Vandermonde System
+
+$$
+\begin{bmatrix}
+1 & x_0 & x_0^2 & \cdots & x_0^{n-1} \\
+1 & x_1 & x_1^2 & \cdots & x_1^{n-1} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+1 & x_{n-1} & x_{n-1}^2 & \cdots & x_{n-1}^{n-1}
+\end{bmatrix}
+\begin{bmatrix}c_0\\c_1\\\vdots\\c_{n-1}\end{bmatrix}
+=
+\begin{bmatrix}y_0\\y_1\\\vdots\\y_{n-1}\end{bmatrix}
+$$
+
+- Recall **2.8.1 Vandermonde Matrices** can be solved in $O(n^2)$
+
+::: {.notes}
+將拿到的 $n$ 個點代入多項式展開成 $n$ 個等式，可以轉換為 Vandermonde system
+這時候用到 **2.8** 章節的方法，可以在 $O(n^2)$ 內求出係數
+:::
+
+## 3.5.1 Another Method
+
+$$P_0(x)=c_0+c_1x+c_2x^2+\cdots+c_{n-1}x^{n-1}, c_0 = P_0(0)$$
+
+$$P_1(x) = {P_0(x) - c_0 \over x} = c_1+c_2x+c_3x^2+\cdots+c_{n-1}x^{n-2}$$
+$$y_i \leftarrow \frac{y_i-c_0}{x_i}, P_1(0) = c_1$$
+$$y_i \leftarrow \frac{y_i-c_1}{x_i}, P_2(0) = c_2$$
+$$\dots$$
+$$y_i \leftarrow \frac{y_i-c_{j-1}}{x_i}, P_{j}(0) = c_{j}$$
+
+- Recall **3.2**, $P(x)$ can be computed in $O(n^2)$, overall $O(n^3)$
+
+::: {.notes}
+另一個方法是求 $x=0$ 的值，得到 $c_0$，接著將多項式減去 $c_0$、除以 $x$，得到新的 $P_1(x)$
+但因為我們沒有多項式，只有 $n$ 個取樣點 $y_i$，因此實際上是將每個 $y_i - c_0$ 除以 $x_i$
+接著對新的多項式求 $x=0$，得到 $c_1$，更新 $y_i$、得到 $P_2$，如此循環，最終就能找到所有係數
+根據 **3.2** 每次代入 $x=0$ 複雜度為 $O(n^2)$，共呼叫 $n$ 次，因此整體為 $O(n^3)$
+雖然比較慢，但有時會比前一個方法稍微穩定
+:::
+
+
+# Thank you!
+
+
+<!-- Add page numbers to all slides except the cover. -->
+<script>
+  window.addEventListener('load', function() {
+    var slides = document.querySelectorAll('.reveal .slides .slide');
+    for (var i = 0; i < slides.length; i++) {
+      var slide = slides[i];
+      if (!slide.classList.contains('cover-slide')) {
+        var pageNumDiv = document.createElement('div');
+        pageNumDiv.className = 'custom-page-number';
+        pageNumDiv.innerText = (i + 1).toString();
+        slide.appendChild(pageNumDiv);
+      }
+    }
+  });
+</script>
