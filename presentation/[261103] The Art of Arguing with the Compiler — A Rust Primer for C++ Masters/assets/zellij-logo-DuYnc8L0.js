@@ -1,0 +1,1 @@
+var e=``+new URL(`../img/zellij-logo.png`,import.meta.url).href;export{e as t};

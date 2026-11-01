@@ -1,0 +1,1 @@
+import{S as e,V as t,W as n}from"../modules/shiki-CzZ4vpcs.js";import{t as r}from"../_plugin-vue_export-helper-BDNMzG2s.js";var i={};function a(r,i){return t(),e(`div`,null,[n(r.$slots,`default`)])}var o=r(i,[[`render`,a]]);export{o as t};
