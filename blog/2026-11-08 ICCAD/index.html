@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>ICCAD 2026 行程</title>
+<link rel="icon" href="../../favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c0d;
+    --fg: #e8e6e1;
+    --mid: #9a9890;
+    --dim: #5c5b57;
+    --line: #2a2a28;
+    --accent: #f2b544;       /* departure-board amber */
+    --link: #9ec5ff;
+    --sans: Inter, system-ui, -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--sans); }
+  main { max-width: 640px; margin: 0 auto; padding: 28px 16px 96px; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* top bar */
+  .top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--mid); letter-spacing: .04em; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+  .seg button { background: none; border: 0; color: var(--dim); font: 500 12px var(--sans); padding: 4px 12px; border-radius: 999px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+
+  /* hero */
+  .eyebrow { font: 500 12px var(--mono); color: var(--accent); letter-spacing: .14em; text-transform: uppercase; margin: 56px 0 6px; display: flex; align-items: center; gap: 8px; }
+  .eyebrow .auto { color: var(--dim); letter-spacing: .02em; text-transform: none; font-family: var(--sans); font-weight: 400; }
+  .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 #f2b54488; } 70% { box-shadow: 0 0 0 10px #f2b54400; } 100% { box-shadow: 0 0 0 0 #f2b54400; } }
+  @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+  .city { font-size: clamp(44px, 13vw, 72px); font-weight: 300; line-height: 1.05; letter-spacing: -.02em; margin: 0; }
+  .doing { color: var(--mid); margin: 10px 0 0; }
+  .hint { margin: 6px 0 0; font-size: 14px; color: var(--accent); min-height: 1.6em; }
+
+  .clocks { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-top: 28px; }
+  .clocks.single { grid-template-columns: 1fr; }
+  .clocks.single #ck-us { display: none; }
+  .clock { background: var(--bg); padding: 14px 16px; }
+  .clock .lbl { font-size: 12px; color: var(--mid); display: flex; align-items: center; gap: 6px; }
+  .clock .lbl i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: none; }
+  .clock.here .lbl i { display: inline-block; }
+  .clock .t { font: 400 32px/1.2 var(--mono); letter-spacing: -.02em; margin-top: 2px; }
+  .clock .d { font-size: 13px; color: var(--mid); }
+
+  /* route */
+  .route { display: flex; align-items: flex-start; margin: 44px 0 0; }
+  .stop { position: relative; z-index: 1; flex: 0 0 auto; width: 64px; text-align: center; font-size: 12px; color: var(--dim); }
+  .stop .dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--dim); margin: 0 auto 8px; background: var(--bg); }
+  .stop .n { display: block; line-height: 1.3; }
+  .stop .w { font-family: var(--mono); font-size: 11px; }
+  .stop.past { color: var(--mid); } .stop.past .dot { background: var(--mid); border-color: var(--mid); }
+  .stop.cur { color: var(--fg); } .stop.cur .dot { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px #f2b54426; }
+  .leg { flex: 1 1 auto; height: 1.5px; background: var(--line); margin: 4px -24px 0; }
+  .leg.done { background: var(--mid); }
+  .leg.active { background: linear-gradient(90deg, var(--mid), var(--accent)); }
+
+  /* stays */
+  h2 { font: 500 12px var(--mono); color: var(--mid); letter-spacing: .14em; text-transform: uppercase; margin: 64px 0 12px; }
+  .stay { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .stay small { display: block; color: var(--mid); font-size: 13px; }
+  .stay .w { font: 13px var(--mono); color: var(--mid); white-space: nowrap; }
+
+  /* timeline: points (moments) and segments (what happens between two points) */
+  .day-h { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 6px; margin: 28px 0 6px; }
+  .day-h b { font-weight: 600; font-size: 15px; }
+  .day-h b span { font-weight: 400; color: var(--mid); margin-left: 6px; }
+  .day-h em { font-style: normal; color: var(--mid); font-size: 13px; }
+
+  .row { display: grid; grid-template-columns: 5.4em 15px 1fr; column-gap: 12px; }
+  .row .tm { font: 14px/24px var(--mono); padding: 6px 0; text-align: right; white-space: nowrap; }
+  .row .tm small { display: block; font-size: 11.5px; line-height: 14px; color: var(--mid); }
+  .row .body { padding: 6px 0; }
+  .rail { position: relative; }
+  .rail::before, .rail::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); border-left: 1.5px solid transparent; }
+  .rail::before { top: 0; height: 18px; }
+  .rail::after { top: 18px; bottom: 0; }
+  .rail.t-solid::before, .rail.b-solid::after { border-left-style: solid; border-color: var(--dim); }
+  .rail.t-dot::before, .rail.b-dot::after { border-left-style: dotted; border-color: var(--dim); }
+  .rail i { position: absolute; left: 50%; top: 18px; width: 9px; height: 9px; transform: translate(-50%, -50%); border-radius: 50%; border: 1.5px solid var(--mid); background: var(--bg); z-index: 1; }
+
+  .pt .body { font-size: 15px; line-height: 24px; }
+  .pt .tw { display: block; font-size: 12.5px; line-height: 18px; color: var(--mid); }
+  .pt.nolabel .body { padding-top: 9px; }
+  .pt.nolabel .tw { display: inline; }
+  .pt.past { opacity: .45; }
+  .pt.past .rail i { background: var(--mid); }
+
+  .sg .rail::before { height: auto; bottom: 0; border-left-style: solid; border-color: var(--dim); }
+  .sg .rail::after { display: none; }
+  .sg .body { padding: 2px 0 14px; }
+  .sg .ttl { font-weight: 600; }
+  .sg .pl { font-size: 14px; color: var(--mid); }
+  .sg.past { opacity: .45; }
+  .sg.cur .rail::before { border-color: var(--accent); border-left-width: 2px; }
+  .sg.cur .ttl::after { content: attr(data-now); margin-left: 8px; font: 500 11px var(--mono); color: var(--bg); background: var(--accent); padding: 1px 6px; border-radius: 4px; vertical-align: 2px; }
+  .pt.cur-edge .rail::before, .pt.cur-edge2 .rail::after { border-color: var(--accent); }
+
+  footer { margin-top: 56px; font-size: 13px; color: var(--dim); line-height: 1.7; }
+  @media (max-width: 400px) {
+    .stop { width: 56px; font-size: 11px; }
+    .row { grid-template-columns: 4.9em 15px 1fr; column-gap: 9px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <span>ICCAD 2026 · 🇹🇼 → 🇺🇸</span>
+    <div class="seg" role="group" aria-label="Language">
+      <button type="button" data-l="zh">中</button>
+      <button type="button" data-l="en">EN</button>
+    </div>
+  </div>
+
+  <p class="eyebrow"><span class="pulse"></span><span id="eyebrow"></span><span class="auto" id="auto"></span></p>
+  <h1 class="city" id="city"></h1>
+  <p class="doing" id="doing"></p>
+  <p class="hint" id="hint"></p>
+
+  <div class="clocks">
+    <div class="clock" id="ck-tw"><div class="lbl"><i></i><span></span></div><div class="t"></div><div class="d"></div></div>
+    <div class="clock" id="ck-us"><div class="lbl"><i></i><span></span></div><div class="t"></div><div class="d"></div></div>
+  </div>
+
+  <div class="route" id="route"></div>
+
+  <h2 id="h-stays"></h2>
+  <div id="stays"></div>
+
+  <h2 id="h-plan"></h2>
+  <div id="plan"></div>
+
+  <footer id="foot"></footer>
+</main>
+
+<script>
+const M = q => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
+const TZ = { tw: "Asia/Taipei", us: "America/Los_Angeles" };
+
+const CITY = {
+  tpe: { zh: "台北", en: "Taipei" },
+  sj:  { zh: "San Jose", en: "San Jose" },
+  lv:  { zh: "Las Vegas", en: "Las Vegas" },
+  sf:  { zh: "San Francisco", en: "San Francisco" },
+  air: { zh: "飛行中", en: "In the air" },
+};
+
+const PLACES = {
+  tpe: { zh: "桃園機場第二航廈", en: "Taoyuan Airport Terminal 2", map: M("Taoyuan International Airport Terminal 2") },
+  sfo: { zh: "SFO 機場 → San Jose", en: "SFO → San Jose", map: M("San Francisco International Airport") },
+  bay: { zh: "San Jose 附近", en: "Around San Jose", map: M("San Jose, CA") },
+  mar: { zh: "San Jose Marriott", en: "San Jose Marriott", map: M("San Jose Marriott, 301 S Market St, San Jose, CA 95113") },
+  sjc: { zh: "San Jose 機場", en: "San Jose airport", map: M("San Jose International Airport Terminal B") },
+  lv:  { zh: "Las Vegas Strip 一帶", en: "Around the Las Vegas Strip", map: M("Las Vegas Strip") },
+  dt:  { zh: "Fremont Street 一帶", en: "Around Fremont Street", map: M("Fremont Street Experience, Las Vegas") },
+  las: { zh: "Las Vegas 機場", en: "Las Vegas airport", map: M("Harry Reid International Airport Terminal 1") },
+  sf:  { zh: "SFO 機場或 San Francisco 市區", en: "SFO or San Francisco city", map: M("San Francisco, CA") },
+};
+
+// Timeline = points (moments) and segments. A segment is what happens between the point before and the point after it.
+// P: day = group (local date), tz = local clock, c = where I am from this moment on, approx = rough time, zh/en = optional label
+// S: c = where I am during it, air = flight, busy = slow to reply, p = place
+const P = (day, tz, s, o = {}) => ({ k: "p", day, tz, s, ...o });
+const S = o => ({ k: "s", ...o });
+const TL = [
+  P("11-06", "tw", "2026-11-06T21:00+08:00", { approx: 1, c: "tpe", zh: "從家出發", en: "Leave home" }),
+  S({ c: "tpe", p: "tpe", zh: "前往桃園機場", en: "To Taoyuan Airport" }),
+  P("11-06", "tw", "2026-11-07T00:05+08:00", { c: "air", zh: "桃園 起飛", en: "Depart Taoyuan" }),
+  S({ c: "air", air: 1, zh: "✈ 星宇 JX12", en: "✈ Starlux JX12" }),
+  P("11-06", "us", "2026-11-06T19:10-08:00", { c: "sj", zh: "抵達 San Francisco (SFO)", en: "Arrive San Francisco (SFO)" }),
+  S({ c: "sj", p: "sfo", zh: "入境，搭大眾運輸去 San Jose", en: "Immigration, transit to San Jose" }),
+  P("11-06", "us", "2026-11-06T23:00-08:00", { approx: 1, c: "sj", zh: "到飯店", en: "Reach the hotel" }),
+
+  P("11-07", "us", "2026-11-07T08:00-08:00", { approx: 1, c: "sj" }),
+  S({ c: "sj", p: "bay", zh: "自由活動，可能去 Stanford", en: "Free day, maybe Stanford" }),
+  P("11-07", "us", "2026-11-07T21:00-08:00", { approx: 1, c: "sj" }),
+
+  P("11-08", "us", "2026-11-08T07:30-08:00", { c: "sj" }),
+  S({ c: "sj", p: "mar", busy: 1, zh: "CADathlon 程式競賽", en: "CADathlon programming contest" }),
+  P("11-08", "us", "2026-11-08T17:00-08:00", { c: "sj" }),
+
+  P("11-09", "us", "2026-11-09T07:30-08:00", { c: "sj" }),
+  S({ c: "sj", p: "mar", busy: 1, zh: "ICCAD 研討會", en: "ICCAD conference" }),
+  P("11-09", "us", "2026-11-09T20:00-08:00", { c: "sj" }),
+
+  P("11-10", "us", "2026-11-10T08:30-08:00", { c: "sj" }),
+  S({ c: "sj", p: "mar", busy: 1, zh: "ICCAD 研討會", en: "ICCAD conference" }),
+  P("11-10", "us", "2026-11-10T19:15-08:00", { c: "sj" }),
+
+  P("11-11", "us", "2026-11-11T08:30-08:00", { c: "sj" }),
+  S({ c: "sj", p: "mar", busy: 1, zh: "ICCAD 研討會 · 晚宴", en: "ICCAD conference · gala dinner" }),
+  P("11-11", "us", "2026-11-11T20:15-08:00", { c: "sj" }),
+
+  P("11-12", "us", "2026-11-12T05:45-08:00", { approx: 1, c: "sj", zh: "退房", en: "Check out" }),
+  S({ c: "sj", p: "sjc", zh: "前往 San Jose 機場", en: "To San Jose airport" }),
+  P("11-12", "us", "2026-11-12T07:45-08:00", { c: "air", zh: "San Jose (SJC) 起飛", en: "Depart San Jose (SJC)" }),
+  S({ c: "air", air: 1, zh: "✈ Southwest WN4508", en: "✈ Southwest WN4508" }),
+  P("11-12", "us", "2026-11-12T09:15-08:00", { c: "lv", zh: "抵達 Las Vegas", en: "Arrive Las Vegas" }),
+  S({ c: "lv", p: "lv", zh: "Las Vegas 觀光", en: "Exploring Las Vegas" }),
+  P("11-12", "us", "2026-11-12T22:00-08:00", { approx: 1, c: "lv" }),
+
+  P("11-13", "us", "2026-11-13T09:00-08:00", { approx: 1, c: "lv" }),
+  S({ c: "lv", p: "dt", zh: "Las Vegas 觀光", en: "Exploring Las Vegas" }),
+  P("11-13", "us", "2026-11-13T22:00-08:00", { approx: 1, c: "lv" }),
+
+  P("11-14", "us", "2026-11-14T09:00-08:00", { approx: 1, c: "lv" }),
+  S({ c: "lv", p: "lv", zh: "Las Vegas 觀光", en: "Exploring Las Vegas" }),
+  P("11-14", "us", "2026-11-14T21:00-08:00", { approx: 1, c: "lv", zh: "早點睡", en: "Early night" }),
+
+  P("11-15", "us", "2026-11-15T03:45-08:00", { approx: 1, c: "lv", zh: "退房", en: "Check out" }),
+  S({ c: "lv", p: "las", zh: "前往 Las Vegas 機場", en: "To Las Vegas airport" }),
+  P("11-15", "us", "2026-11-15T06:10-08:00", { c: "air", zh: "Las Vegas (LAS) 起飛", en: "Depart Las Vegas (LAS)" }),
+  S({ c: "air", air: 1, zh: "✈ Southwest WN0496", en: "✈ Southwest WN0496" }),
+  P("11-15", "us", "2026-11-15T07:50-08:00", { c: "sf", zh: "抵達 San Francisco (SFO)", en: "Arrive San Francisco (SFO)" }),
+  S({ c: "sf", p: "sf", zh: "轉機空檔，可能去市區走走", en: "Long layover, maybe the city" }),
+  P("11-15", "us", "2026-11-15T23:10-08:00", { c: "air", zh: "San Francisco (SFO) 起飛", en: "Depart San Francisco (SFO)" }),
+  S({ c: "air", air: 1, zh: "✈ 星宇 JX11", en: "✈ Starlux JX11" }),
+  P("11-15", "tw", "2026-11-17T05:15+08:00", { c: "tpe", zh: "抵達桃園，回到台灣 🏠", en: "Arrive Taoyuan, home 🏠" }),
+];
+TL.forEach((e, i) => { e.i = i; if (e.k === "p") e.t = new Date(e.s).getTime(); });
+TL.forEach((e, i) => { if (e.k === "s") { e.a = TL[i - 1]; e.b = TL[i + 1]; } });
+const POINTS = TL.filter(e => e.k === "p");
+
+const STAYS = [
+  { c: "sj", s: "11/6", e: "11/12", name: "Hyatt Place San Jose/Downtown", city: "San Jose, CA",
+    map: M("Hyatt Place San Jose Downtown, 282 Almaden Blvd, San Jose, CA 95113") },
+  { c: "lv", s: "11/12", e: "11/15", name: "Treasure Island Las Vegas", city: "Las Vegas, NV",
+    map: M("Treasure Island Hotel, 3300 Las Vegas Blvd S, Las Vegas, NV 89109") },
+];
+
+const ROUTE = [
+  { c: "tpe", w: "11/6",  until: "2026-11-07T00:05+08:00" },
+  { c: "sj",  w: "11/6",  from: "2026-11-06T19:10-08:00", until: "2026-11-12T07:45-08:00" },
+  { c: "lv",  w: "11/12", from: "2026-11-12T09:15-08:00", until: "2026-11-15T06:10-08:00" },
+  { c: "sf",  w: "11/15", from: "2026-11-15T07:50-08:00", until: "2026-11-15T23:10-08:00" },
+  { c: "tpe", w: "11/17", from: "2026-11-17T05:15+08:00" },
+];
+
+const T = {
+  zh: {
+    wd: ["日","一","二","三","四","五","六"],
+    date: (m, d, w) => `${m}/${d}（${w}）`,
+    dayH: (m, d, w) => [`${m}/${d}`, `週${w}`],
+    period: h => h < 5 ? "凌晨" : h < 8 ? "清晨" : h < 12 ? "早上" : h < 14 ? "中午" : h < 18 ? "下午" : "晚上",
+    status: "目前狀態", auto: "· 依當下時間自動更新",
+    beforeDoing: "還在台灣，11/6 晚上出發",
+    afterDoing: "旅程結束，平安回家",
+    tw: "台灣", us: "美西",
+    twAt: w => `台灣 ${w}`,
+    dur: h => `飛行約 ${h} 小時`,
+    nowTag: "現在",
+    asleep: "我這邊是深夜，可能在睡覺 🌙",
+    flying: "在飛機上，暫時聯絡不到 ✈",
+    busy: "在會場，訊息可能晚點回",
+    stays: "住宿", plan: "行程",
+    foot: "左欄是我當地的時間；人在美國時，旁邊小字附上對應的台灣時間。美西為太平洋標準時間（UTC−8），台灣快 16 小時；Las Vegas 與 San Jose 同時區。寫「早上、晚上」的只是大概，行程可能會變。",
+  },
+  en: {
+    wd: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+    date: (m, d, w) => `${w} ${m}/${d}`,
+    dayH: (m, d, w) => [`${m}/${d}`, w],
+    period: h => h < 5 ? "late night" : h < 8 ? "early morning" : h < 12 ? "morning" : h < 14 ? "midday" : h < 18 ? "afternoon" : "evening",
+    short: h => h < 5 ? "night" : h < 8 ? "dawn" : h < 12 ? "morning" : h < 14 ? "noon" : h < 18 ? "afternoon" : "evening",
+    status: "Current status", auto: "· updates automatically",
+    beforeDoing: "Still in Taiwan — leaving the evening of Nov 6",
+    afterDoing: "Home safe",
+    tw: "Taiwan", us: "US Pacific",
+    twAt: w => `Taiwan ${w}`,
+    dur: h => `about ${h} h in the air`,
+    nowTag: "NOW",
+    asleep: "It's the middle of the night here — probably asleep 🌙",
+    flying: "In the air — can't reply for now ✈",
+    busy: "At the conference — replies may be slow",
+    stays: "Staying at", plan: "Itinerary",
+    foot: "The left column is my local time; while I'm in the US, the small line shows the matching Taiwan time. US times are Pacific Standard Time (UTC−8), Taiwan is 16 hours ahead, and Las Vegas shares San Jose's time zone. “Morning”, “evening” etc. are rough, and plans may change.",
+  },
+};
+
+const $ = id => document.getElementById(id);
+const fmts = {};
+function parts(t, tz) {
+  fmts[tz] ??= new Intl.DateTimeFormat("en-US", { timeZone: TZ[tz], month: "numeric", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const o = {};
+  for (const p of fmts[tz].formatToParts(new Date(t))) o[p.type] = p.value;
+  return { m: +o.month, d: +o.day, w: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(o.weekday), h: +o.hour, hm: `${o.hour}:${o.minute}` };
+}
+const placeHTML = (k, lang) => { const p = PLACES[k]; return p.map ? `<a href="${p.map}" target="_blank" rel="noopener">${p[lang]}</a>` : p[lang]; };
+
+let lang;
+try { lang = localStorage.getItem("iccad-lang"); } catch {}
+if (lang !== "zh" && lang !== "en") lang = (navigator.language || "").toLowerCase().startsWith("zh") ? "zh" : "en";
+
+function render() {
+  const t = T[lang], now = Date.now();
+  document.documentElement.lang = lang === "zh" ? "zh-Hant" : "en";
+  document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l === lang));
+
+  // ---- status: last point passed; if a segment follows it, I'm in that segment
+  const first = POINTS[0].t, last = POINTS.at(-1).t;
+  const lastP = POINTS.filter(p => p.t <= now).at(-1);
+  const curS = lastP && TL[lastP.i + 1]?.k === "s" ? TL[lastP.i + 1] : null;
+  let city, doing, hereTz = "tw";
+  if (now < first) { city = CITY.tpe[lang]; doing = t.beforeDoing; }
+  else if (now >= last) { city = CITY.tpe[lang]; doing = t.afterDoing; }
+  else if (curS) {
+    city = CITY[curS.c][lang];
+    doing = curS[lang] + (curS.p ? ` · ${placeHTML(curS.p, lang)}` : "");
+    hereTz = curS.c === "tpe" || (curS.air && curS.a.tz === "tw") ? "tw" : "us";
+  } else {
+    city = CITY[lastP.c][lang];
+    const stay = STAYS.find(s => s.c === lastP.c);
+    doing = stay ? `<a href="${stay.map}" target="_blank" rel="noopener">${stay.name}</a>` : "";
+    hereTz = lastP.c === "tpe" ? "tw" : "us";
+  }
+  $("eyebrow").textContent = t.status;
+  $("auto").textContent = t.auto;
+  $("city").textContent = city;
+  $("doing").innerHTML = doing;
+  document.title = `${city} · ICCAD 2026`;
+  $("hint").textContent = curS?.air ? t.flying : curS?.busy ? t.busy : parts(now, hereTz).h < 7 && now >= first && now < last ? t.asleep : "";
+
+  // ---- clocks (US clock only while I'm away)
+  document.querySelector(".clocks").classList.toggle("single", now < first || now >= last || (hereTz === "tw" && !curS?.air));
+  for (const tz of ["tw", "us"]) {
+    const p = parts(now, tz), el = $("ck-" + tz);
+    el.classList.toggle("here", tz === hereTz);
+    el.querySelector(".lbl span").textContent = t[tz];
+    el.querySelector(".t").textContent = p.hm;
+    el.querySelector(".d").textContent = `${t.date(p.m, p.d, t.wd[p.w])} ${t.period(p.h)}`;
+  }
+
+  // ---- route
+  $("route").innerHTML = ROUTE.map((r, i) => {
+    const from = r.from ? new Date(r.from).getTime() : -Infinity, until = r.until ? new Date(r.until).getTime() : Infinity;
+    const st = now >= from && now < until ? "cur" : now >= until ? "past" : "";
+    let leg = "";
+    if (i < ROUTE.length - 1) {
+      const nf = new Date(ROUTE[i + 1].from).getTime();
+      leg = `<div class="leg ${now >= nf ? "done" : now >= until ? "active" : ""}"></div>`;
+    }
+    return `<div class="stop ${st}"><div class="dot"></div><span class="n">${CITY[r.c][lang]}</span><span class="w">${r.w}</span></div>${leg}`;
+  }).join("");
+
+  // ---- stays
+  $("h-stays").textContent = t.stays;
+  $("stays").innerHTML = STAYS.map(s =>
+    `<div class="stay"><div><a href="${s.map}" target="_blank" rel="noopener">${s.name}</a><small>${s.city}</small></div><span class="w">${s.s} – ${s.e}</span></div>`
+  ).join("");
+
+  // ---- timeline
+  $("h-plan").textContent = t.plan;
+  let html = "", day = null, dm, dd;
+  const rail = (top, bot) => `rail ${top ? "t-" + top : ""} ${bot ? "b-" + bot : ""}`;
+  for (const e of TL) {
+    if (e.k === "p" && e.day !== day) {
+      day = e.day; [dm, dd] = day.split("-").map(Number);
+      const w = new Date(Date.UTC(2026, dm - 1, dd)).getUTCDay();
+      const [dl, wl] = t.dayH(dm, dd, t.wd[w]);
+      const cities = [...new Set(TL.filter(x => (x.k === "p" ? x.day : x.a.day) === day).map(x => x.c).filter(c => c !== "air"))].map(c => CITY[c][lang]).join(" → ");
+      html += `<div class="day-h"><b>${dl}<span>${wl}</span></b><em>${cities}</em></div>`;
+    }
+    if (e.k === "p") {
+      const lp = parts(e.t, e.tz);
+      const tm = e.approx ? (t.short || t.period)(lp.h) : lp.hm;
+      const dateTag = lp.m !== dm || lp.d !== dd ? `<small>${lp.m}/${lp.d}</small>` : "";
+      const prev = TL[e.i - 1], next = TL[e.i + 1];
+      const top = prev?.k === "s" ? "solid" : "";
+      const bot = next?.k === "s" ? "solid" : "";
+      let tw = "";
+      if (e.tz === "us") {
+        const p = parts(e.t, "tw");
+        tw = `<span class="tw">${t.twAt(t.date(p.m, p.d, t.wd[p.w]) + " " + (e.approx ? t.period(p.h) : p.hm))}</span>`;
+      }
+      const label = e[lang] || "";
+      const cls = ["pt", label ? "" : "nolabel", e.t <= now ? "past" : "",
+        curS && prev === curS ? "cur-edge" : "", curS && next === curS ? "cur-edge2" : ""].join(" ");
+      html += `<div class="row ${cls}"><div class="tm">${tm}${dateTag}</div><div class="${rail(top, bot)}"><i></i></div><div class="body">${label}${tw}</div></div>`;
+    } else {
+      const cls = e === curS ? "cur" : e.b.t <= now ? "past" : "";
+      const sub = e.air ? t.dur(Math.round((e.b.t - e.a.t) / 1800e3) / 2) : e.p ? placeHTML(e.p, lang) : "";
+      html += `<div class="row sg ${cls}"><div></div><div class="rail"></div><div class="body"><div class="ttl" data-now="${t.nowTag}">${e[lang]}</div>${sub ? `<div class="pl">${sub}</div>` : ""}</div></div>`;
+    }
+  }
+  $("plan").innerHTML = html;
+  $("foot").textContent = t.foot;
+}
+
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
+  lang = b.dataset.l;
+  try { localStorage.setItem("iccad-lang", lang); } catch {}
+  render();
+});
+render();
+setInterval(render, 15e3);
+</script>
+</body>
+</html>
